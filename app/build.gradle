@@ -32,7 +32,7 @@ android {
 }
 
 dependencies {
-
+    def lifecycle_version = "2.5.1"
     implementation 'androidx.core:core-ktx:1.7.0'
     implementation 'androidx.appcompat:appcompat:1.5.1'
     implementation 'com.google.android.material:material:1.7.0'
@@ -45,4 +45,10 @@ dependencies {
 
     //getCurrentLocation
     implementation 'com.google.android.gms:play-services-location:21.0.1'
+    // Google Map dependency
+    implementation 'com.google.android.gms:play-services-maps:17.0.0'
+
+    // optional - helpers for implementing LifecycleOwner in a Service
+    implementation "androidx.lifecycle:lifecycle-service:$lifecycle_version"
+
 }
