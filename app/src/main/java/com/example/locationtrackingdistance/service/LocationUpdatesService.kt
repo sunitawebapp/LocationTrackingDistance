@@ -9,6 +9,7 @@ import android.content.Intent
 import android.location.Location
 import android.os.Build
 import android.os.IBinder
+import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.LiveData
@@ -69,7 +70,7 @@ class LocationUpdatesService : LifecycleService(){
         val builder = NotificationCompat.Builder(this,CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_launcher_background)
             .setContentTitle("location Tracking")
-            .setContentText(notifyText)
+            .setContentText(System.currentTimeMillis().toString())
 
         // Add as notification
         val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -96,7 +97,7 @@ class LocationUpdatesService : LifecycleService(){
 
     override fun onDestroy() {
         super.onDestroy()
-
+        Toast.makeText(this, "sreg", Toast.LENGTH_SHORT).show()
     }
 
 }

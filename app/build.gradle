@@ -51,4 +51,6 @@ dependencies {
     // optional - helpers for implementing LifecycleOwner in a Service
     implementation "androidx.lifecycle:lifecycle-service:$lifecycle_version"
 
+    implementation 'com.karumi:dexter:6.2.3'
+
 }

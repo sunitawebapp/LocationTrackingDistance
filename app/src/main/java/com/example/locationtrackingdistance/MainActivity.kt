@@ -4,34 +4,29 @@ import android.Manifest
 import android.app.PendingIntent
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.os.Build
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.provider.Settings
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.viewModels
-
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Observer
 import com.example.locationtrackingdistance.livedata.FASTEST_INTERVAL
 import com.example.locationtrackingdistance.livedata.INTERVAL
-import com.example.locationtrackingdistance.livedata.LocationLiveData
 import com.example.locationtrackingdistance.livedata.LocationViewModel
-import com.example.locationtrackingdistance.service.LocationUpdatesService
-import com.google.android.gms.location.LocationCallback
+import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationRequest
-import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
-import com.google.android.gms.maps.CameraUpdateFactory
-import com.google.android.gms.maps.GoogleMap
-import com.google.android.gms.maps.OnMapReadyCallback
-import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.CameraPosition
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.Marker
-import com.google.android.gms.maps.model.MarkerOptions
+import com.karumi.dexter.Dexter
+import com.karumi.dexter.MultiplePermissionsReport
+import com.karumi.dexter.PermissionToken
+import com.karumi.dexter.listener.PermissionDeniedResponse
+import com.karumi.dexter.listener.PermissionGrantedResponse
+import com.karumi.dexter.listener.PermissionRequest
+import com.karumi.dexter.listener.multi.MultiplePermissionsListener
+import com.karumi.dexter.listener.single.PermissionListener
+
 
 class MainActivity : AppCompatActivity() /*, OnMapReadyCallback */{
   lateinit  var latitude : TextView
@@ -39,7 +34,7 @@ class MainActivity : AppCompatActivity() /*, OnMapReadyCallback */{
     lateinit  var diatance : TextView
    /* lateinit var mMap: GoogleMap
     private  var marker: Marker?=null*/
-   private var fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
+   lateinit var fusedLocationProviderClient :FusedLocationProviderClient
     private val locationViewModel: LocationViewModel by viewModels()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -55,19 +50,39 @@ class MainActivity : AppCompatActivity() /*, OnMapReadyCallback */{
 /*
         var smf =  getChildFragmentManager().findFragmentById(R.id.map) as SupportMapFragment
         smf.getMapAsync(this);*/
-
+        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
         if (ContextCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED){
             if (ActivityCompat.shouldShowRequestPermissionRationale(this,
                     Manifest.permission.ACCESS_FINE_LOCATION)){
                 ActivityCompat.requestPermissions(this,
                     arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 1);
+                if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                        Manifest.permission.ACCESS_BACKGROUND_LOCATION)){
+                    ActivityCompat.requestPermissions(this,
+                        arrayOf(Manifest.permission.ACCESS_BACKGROUND_LOCATION), 2);
+                }
+
             }else{
                 ActivityCompat.requestPermissions(this,
                     arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 1);
             }
         }
+  /*      Dexter.withContext(this)
+            .withPermissions(Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.ACCESS_BACKGROUND_LOCATION)
+            .withListener(object : MultiplePermissionsListener {
+                override fun onPermissionsChecked(p0: MultiplePermissionsReport?) {
 
+                }
+
+                override fun onPermissionRationaleShouldBeShown(
+                    p0: MutableList<PermissionRequest>?,
+                    p1: PermissionToken?
+                ) {
+
+                }
+            }).check()*/
 
         val locationRequest: LocationRequest = LocationRequest.create()
             .apply {
@@ -75,11 +90,19 @@ class MainActivity : AppCompatActivity() /*, OnMapReadyCallback */{
                 fastestInterval = FASTEST_INTERVAL
                 priority = LocationRequest.PRIORITY_HIGH_ACCURACY
             }
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+
+
+            return
+        }
         fusedLocationProviderClient.requestLocationUpdates(
-           locationRequest,
+            locationRequest,
             getpendingIntent()
         )
-
 
      /*   locationViewModel.getLocationData.observe(this, Observer {
             longitude.text = it.longitude.toString()
@@ -113,7 +136,9 @@ class MainActivity : AppCompatActivity() /*, OnMapReadyCallback */{
    }
 
     fun getpendingIntent() : PendingIntent{
-        var intent =Intent(this, LocationUpdatesService::class.java)
+     /*   var  intent1 =  Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+        startActivity(intent1);*/
+        var intent =Intent(this, LocationReceiver::class.java)
         intent.setAction("com.example.locationtrackingdistance.UPDATE_LOCATION")
         return PendingIntent.getBroadcast(this,0,intent,PendingIntent.FLAG_CANCEL_CURRENT)
     }
