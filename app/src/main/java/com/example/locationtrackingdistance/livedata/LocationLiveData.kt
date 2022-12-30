@@ -11,8 +11,8 @@ import com.google.android.gms.location.LocationServices
 /**
  * Constants Values
  */
-const val INTERVAL = 1000L
-const val FASTEST_INTERVAL = 500L
+const val INTERVAL = 2000L
+const val FASTEST_INTERVAL = 1000L
 
 /**
  * Created by Waheed on 03,December,2019
