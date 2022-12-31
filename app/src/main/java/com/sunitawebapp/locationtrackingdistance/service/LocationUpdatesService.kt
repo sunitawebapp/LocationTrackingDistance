@@ -1,24 +1,22 @@
-package com.example.locationtrackingdistance.service
+package com.sunitawebapp.locationtrackingdistance.service
 
 import android.app.*
 import android.content.Context
 import android.content.Intent
 import android.location.Location
 import android.os.Build
-import android.os.IBinder
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.lifecycle.LifecycleService
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
-import com.example.locationtrackingdistance.LocationReceiver
-import com.example.locationtrackingdistance.R
-import com.example.locationtrackingdistance.livedata.LocationLiveData
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import com.sunitawebapp.locationtrackingdistance.AppController
+import com.sunitawebapp.locationtrackingdistance.R
+import com.sunitawebapp.locationtrackingdistance.livedata.LocationLiveData
+import com.google.android.gms.maps.model.LatLng
 
+var currentpoint : LatLng?=null
 class LocationUpdatesService : LifecycleService(){
     val CHANNEL_ID = "ForegroundServiceChannel"
     var notifyText=""
@@ -58,7 +56,13 @@ class LocationUpdatesService : LifecycleService(){
          */
         var getLocationData: LiveData<Location> = locationData
         getLocationData.observe(this, Observer {
-            notifyText= getLocationText(it)!!
+
+            currentpoint= LatLng(it.latitude, it.longitude)
+
+
+            var distanceresult= AppController.distanceCalculate(currentpoint)
+          //  AppController.storedata(it,distanceresult)
+            notifyText= getLocationText(it)!! + ", Distance :"+String.format("%.2f", distanceresult / 1000) + "km"
             startForeground(1, getNotification())
         })
 
@@ -70,7 +74,7 @@ class LocationUpdatesService : LifecycleService(){
         val builder = NotificationCompat.Builder(this,CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_launcher_background)
             .setContentTitle("location Tracking")
-            .setContentText(notifyText)
+            .setContentText("$notifyText")
 
         // Add as notification
         val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -97,7 +101,13 @@ class LocationUpdatesService : LifecycleService(){
 
     override fun onDestroy() {
         super.onDestroy()
-        Toast.makeText(this, "sreg", Toast.LENGTH_SHORT).show()
+        try {
+            Toast.makeText(this, "onDestroyservice", Toast.LENGTH_SHORT).show()
+        }catch (e : Exception){
+            Toast.makeText(this, "onDestroyservice", Toast.LENGTH_SHORT).show()
+        }
+
+
     }
 
     

@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "1015469815796",
+    "project_id": "locationtrackingdistance",
+    "storage_bucket": "locationtrackingdistance.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1015469815796:android:7e0d94410be982d033eba1",
+        "android_client_info": {
+          "package_name": "com.sunitawebapp.locationtrackingdistance"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1015469815796-hfiqkru5acve2haebfvkqfu0amj8194i.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC9K8MU6XjLEpc5ikP3woSAUOfiF6aS95A"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1015469815796-hfiqkru5acve2haebfvkqfu0amj8194i.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

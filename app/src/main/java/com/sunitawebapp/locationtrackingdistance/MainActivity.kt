@@ -1,4 +1,4 @@
-package com.example.locationtrackingdistance
+package com.sunitawebapp.locationtrackingdistance
 
 import android.Manifest
 import android.app.AlertDialog
@@ -6,9 +6,11 @@ import android.app.PendingIntent
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.location.Address
+import android.location.Geocoder
+import android.location.Location
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.viewModels
@@ -16,32 +18,42 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Observer
-import com.example.locationtrackingdistance.livedata.FASTEST_INTERVAL
-import com.example.locationtrackingdistance.livedata.INTERVAL
-import com.example.locationtrackingdistance.livedata.LocationViewModel
+
+import com.sunitawebapp.locationtrackingdistance.livedata.FASTEST_INTERVAL
+import com.sunitawebapp.locationtrackingdistance.livedata.INTERVAL
+import com.sunitawebapp.locationtrackingdistance.livedata.LocationViewModel
+import com.sunitawebapp.locationtrackingdistance.service.LocationUpdatesService
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationServices
+import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.GoogleMap
+import com.google.android.gms.maps.OnMapReadyCallback
+import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
-import com.google.maps.android.SphericalUtil
+import com.google.android.gms.maps.model.Marker
+import com.google.android.gms.maps.model.MarkerOptions
+import com.google.firebase.FirebaseApp
+import com.google.firebase.database.FirebaseDatabase
+import com.sunitawebapp.locationtrackingdistance.AppController.Companion.storedata
+import java.util.*
 
 
-class MainActivity : AppCompatActivity() /*, OnMapReadyCallback */{
+class MainActivity : AppCompatActivity() , OnMapReadyCallback {
   lateinit  var latitude : TextView
-    lateinit  var longitude : TextView
-    lateinit  var diatance : TextView
-     var LOCATION_PERMISSION_CODE =1
-     var BACKGROUND_LOCATION_PERMISSION_CODE =2
-
-    var distance=0.0
-    var startpoint : LatLng?=null
-    var endpoint :LatLng?=null
-
+  lateinit  var longitude : TextView
+  lateinit  var diatance : TextView
+  var LOCATION_PERMISSION_CODE =1
+    var BACKGROUND_LOCATION_PERMISSION_CODE =2
+    var currentpoint : LatLng?=null
     lateinit var locationRequest: LocationRequest
-   /* lateinit var mMap: GoogleMap
-    private  var marker: Marker?=null*/
+    lateinit var mMap: GoogleMap
+    private  var marker: Marker?=null
+    var returnedAddress=""
    lateinit var fusedLocationProviderClient :FusedLocationProviderClient
     private val locationViewModel: LocationViewModel by viewModels()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -49,13 +61,12 @@ class MainActivity : AppCompatActivity() /*, OnMapReadyCallback */{
         diatance=findViewById(R.id.diatance)
         latitude=findViewById(R.id.latitude)
         longitude=findViewById(R.id.longitude)
-       /* if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            startForegroundService(Intent(this, LocationUpdatesService::class.java))
-        }*/
 
-/*
-        var smf =  getChildFragmentManager().findFragmentById(R.id.map) as SupportMapFragment
-        smf.getMapAsync(this);*/
+        FirebaseApp.initializeApp(this);
+
+
+        var smf =  this@MainActivity.getSupportFragmentManager().findFragmentById(R.id.map) as SupportMapFragment
+        smf.getMapAsync(this);
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
 
 
@@ -103,17 +114,29 @@ class MainActivity : AppCompatActivity() /*, OnMapReadyCallback */{
             //    info.text = getString(R.string.location_successfully_received)
 
 
-            startpoint= LatLng(it.latitude, it.longitude)
+            currentpoint= LatLng(it.latitude, it.longitude)
 
-            var distanceresult= distanceCalculate()
+            var distanceresult=AppController.distanceCalculate(currentpoint)
             diatance.text=String.format("%.2f", distanceresult / 1000) + "km"
 
+           // storedata(it,distanceresult)
+            getCurrentloaction(it)
+
+          /* var firebasedatabase= FirebaseDatabase.getInstance("https://locationonmap-483ef-default-rtdb.firebaseio.com/")
+
+            var databasereference= firebasedatabase.getReference("GiriExp").child("Location").child("3")
+            databasereference.child("CurLatLng").child("Lat").setValue(it.latitude.toString())
+            databasereference.child("CurLatLng").child("Lng").setValue(it.longitude.toString())
+            databasereference.child("Distance").setValue(String.format("%.2f", distance!! / 1000) + "km")  */
 
         })
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(Intent(this, LocationUpdatesService::class.java))
+        }
     }
 
 
-    fun distanceCalculate ()  : Double{
+/*    fun distanceCalculate ()  : Double{
         if (endpoint!=null){
             var thirdpont=startpoint
             distance = SphericalUtil.computeDistanceBetween(endpoint, thirdpont)+distance;
@@ -129,7 +152,7 @@ class MainActivity : AppCompatActivity() /*, OnMapReadyCallback */{
             Log.d("sunitya", "observeLocationUpdates: "+String.format("%.2f", distance / 1000) + "km")
         }
         return  distance
-    }
+    }*/
 
     private fun askForLocationPermission() {
         if (ActivityCompat.shouldShowRequestPermissionRationale(
@@ -239,10 +262,10 @@ class MainActivity : AppCompatActivity() /*, OnMapReadyCallback */{
     }
 
 
-   /* override fun onMapReady(map: GoogleMap) {
+    override fun onMapReady(map: GoogleMap) {
         mMap = map;
 
-    }*/
+    }
     override fun onDestroy() {
 
 
@@ -260,28 +283,48 @@ class MainActivity : AppCompatActivity() /*, OnMapReadyCallback */{
         return PendingIntent.getBroadcast(this,0,intent,PendingIntent.FLAG_CANCEL_CURRENT)
     }
 
-   /* fun getCurrentloaction(){
-        var  title=stringToLatLong("$lat,$lng")
+    fun getCurrentloaction(it : Location){
+        var  title=stringToLatLong("${it.latitude.toString()},${it.longitude.toString()}")
         if(marker == null){
             marker = mMap!!.addMarker(
                 MarkerOptions()
-                    .position(LatLng(lat, lng))
+                    .position(LatLng(it.latitude, it.longitude))
                     .title(returnedAddress)
 
             )
         } else {
-            marker?.position = LatLng(lat, lng)
-            marker?.title = returnedAddress
+            marker?.position = LatLng(it.latitude, it.longitude)
+          //  marker?.title = returnedAddress
         }
 
-        val cameraPosition = CameraPosition.Builder().target(LatLng(lat, lng))
+        val cameraPosition = CameraPosition.Builder().target(LatLng(it.latitude, it.longitude))
             .zoom(17f)
             .bearing(0f)
             .tilt(45f)
             .build()
-        mMap!!.moveCamera(CameraUpdateFactory.newLatLng(LatLng(lat, lng)))
-        mMap!!.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
-        mMap!!.animateCamera(CameraUpdateFactory.zoomTo(12f), 2000, null);
 
-    }*/
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(it.latitude, it.longitude), 15f))
+        mMap!!.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+        mMap.animateCamera(CameraUpdateFactory.zoomTo(15f), 2000, null);
+
+    }
+
+    private fun stringToLatLong(latLongStr: String): LatLng {
+        val geocoder = Geocoder(this, Locale.getDefault())
+
+
+        val latlong = latLongStr.split(",").toTypedArray()
+        val latitude = latlong[0].toDouble()
+        val longitude = latlong[1].toDouble()
+
+        val addresses: List<Address> = geocoder.getFromLocation(latitude, longitude, 1)
+        val strReturnedAddress = StringBuilder("")
+        var  returnedAdd = addresses[0]
+
+        for (i in 0..returnedAdd.getMaxAddressLineIndex()) {
+            strReturnedAddress.append(returnedAdd.getAddressLine(i)).append("\n")
+        }
+        returnedAddress = strReturnedAddress.toString()
+        return LatLng(latitude, longitude)
+    }
 }

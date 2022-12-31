@@ -1,4 +1,4 @@
-package com.example.locationtrackingdistance
+package com.sunitawebapp.locationtrackingdistance
 
 import org.junit.Test
 

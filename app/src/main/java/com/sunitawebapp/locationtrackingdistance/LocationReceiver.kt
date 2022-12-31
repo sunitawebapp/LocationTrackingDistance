@@ -1,11 +1,9 @@
-package com.example.locationtrackingdistance
+package com.sunitawebapp.locationtrackingdistance
 
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.provider.Settings
 import android.widget.Toast
-import androidx.core.content.ContextCompat.startActivity
 import com.google.android.gms.location.LocationResult
 
 class LocationReceiver : BroadcastReceiver() {
