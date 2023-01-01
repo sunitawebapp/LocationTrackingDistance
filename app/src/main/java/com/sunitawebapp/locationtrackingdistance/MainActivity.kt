@@ -11,11 +11,13 @@ import android.location.Geocoder
 import android.location.Location
 import android.os.Build
 import android.os.Bundle
+import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+import androidx.core.app.ServiceCompat.stopForeground
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Observer
 
@@ -36,6 +38,7 @@ import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.firebase.FirebaseApp
 import com.google.firebase.database.FirebaseDatabase
+import com.sunitawebapp.locationtrackingdistance.AppController.Companion.applunchnew
 import com.sunitawebapp.locationtrackingdistance.AppController.Companion.storedata
 import java.util.*
 
@@ -53,6 +56,8 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
     var returnedAddress=""
    lateinit var fusedLocationProviderClient :FusedLocationProviderClient
     private val locationViewModel: LocationViewModel by viewModels()
+    lateinit var btnStart : Button
+    lateinit var btnStop : Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -61,8 +66,11 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
         diatance=findViewById(R.id.diatance)
         latitude=findViewById(R.id.latitude)
         longitude=findViewById(R.id.longitude)
+        btnStart=findViewById(R.id.btnStart)
+        btnStop=findViewById(R.id.btnStop)
 
         FirebaseApp.initializeApp(this);
+
 
 
         var smf =  this@MainActivity.getSupportFragmentManager().findFragmentById(R.id.map) as SupportMapFragment
@@ -108,31 +116,67 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
             getpendingIntent()
         )
 */
-        locationViewModel.getLocationData.observe(this, Observer {
-            longitude.text = it.longitude.toString()
-            latitude.text = it.latitude.toString()
-            //    info.text = getString(R.string.location_successfully_received)
+        if (applunchnew){
+            locationViewModel.getLocationData.observe(this, Observer {
+                longitude.text = it.longitude.toString()
+                latitude.text = it.latitude.toString()
+                //    info.text = getString(R.string.location_successfully_received)
 
 
-            currentpoint= LatLng(it.latitude, it.longitude)
+                currentpoint= LatLng(it.latitude, it.longitude)
 
-            var distanceresult=AppController.distanceCalculate(currentpoint)
-            diatance.text=String.format("%.2f", distanceresult / 1000) + "km"
+                var distanceresult=AppController.distanceCalculate(currentpoint)
+                diatance.text=String.format("%.2f", distanceresult / 1000) + "km"
 
-           // storedata(it,distanceresult)
-            getCurrentloaction(it)
+                // storedata(it,distanceresult)
+                getCurrentloaction(it)
 
-          /* var firebasedatabase= FirebaseDatabase.getInstance("https://locationonmap-483ef-default-rtdb.firebaseio.com/")
+                /* var firebasedatabase= FirebaseDatabase.getInstance("https://locationonmap-483ef-default-rtdb.firebaseio.com/")
 
-            var databasereference= firebasedatabase.getReference("GiriExp").child("Location").child("3")
-            databasereference.child("CurLatLng").child("Lat").setValue(it.latitude.toString())
-            databasereference.child("CurLatLng").child("Lng").setValue(it.longitude.toString())
-            databasereference.child("Distance").setValue(String.format("%.2f", distance!! / 1000) + "km")  */
+                  var databasereference= firebasedatabase.getReference("GiriExp").child("Location").child("3")
+                  databasereference.child("CurLatLng").child("Lat").setValue(it.latitude.toString())
+                  databasereference.child("CurLatLng").child("Lng").setValue(it.longitude.toString())
+                  databasereference.child("Distance").setValue(String.format("%.2f", distance!! / 1000) + "km")  */
 
-        })
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            startForegroundService(Intent(this, LocationUpdatesService::class.java))
+            })
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                startForegroundService(Intent(this, LocationUpdatesService::class.java))
+            }
         }
+        btnStart.setOnClickListener {
+            applunchnew=true
+            locationViewModel.getLocationData.observe(this, Observer {
+                longitude.text = it.longitude.toString()
+                latitude.text = it.latitude.toString()
+                //    info.text = getString(R.string.location_successfully_received)
+
+
+                currentpoint= LatLng(it.latitude, it.longitude)
+
+                var distanceresult=AppController.distanceCalculate(currentpoint)
+                diatance.text=String.format("%.2f", distanceresult / 1000) + "km"
+
+                // storedata(it,distanceresult)
+                getCurrentloaction(it)
+
+                /* var firebasedatabase= FirebaseDatabase.getInstance("https://locationonmap-483ef-default-rtdb.firebaseio.com/")
+
+                  var databasereference= firebasedatabase.getReference("GiriExp").child("Location").child("3")
+                  databasereference.child("CurLatLng").child("Lat").setValue(it.latitude.toString())
+                  databasereference.child("CurLatLng").child("Lng").setValue(it.longitude.toString())
+                  databasereference.child("Distance").setValue(String.format("%.2f", distance!! / 1000) + "km")  */
+
+            })
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                startForegroundService(Intent(this, LocationUpdatesService::class.java))
+            }
+        }
+        btnStop.setOnClickListener {
+
+            stopService(Intent(this, LocationUpdatesService::class.java))
+
+        }
+
     }
 
 

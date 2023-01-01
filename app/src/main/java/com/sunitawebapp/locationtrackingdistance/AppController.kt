@@ -21,6 +21,7 @@ class AppController : Application() {
     }
 
     companion object{
+        var applunchnew : Boolean=false
         var distance=0.0
         var previouspoint: LatLng? = null
         fun distanceCalculate ( currentPoint: LatLng?)  : Double {
