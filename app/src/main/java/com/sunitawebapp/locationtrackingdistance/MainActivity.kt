@@ -1,30 +1,30 @@
 package com.sunitawebapp.locationtrackingdistance
 
 import android.Manifest
+
 import android.app.AlertDialog
 import android.app.PendingIntent
+import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
+import android.graphics.Color
 import android.location.Address
 import android.location.Geocoder
 import android.location.Location
+import android.net.ConnectivityManager
 import android.os.Build
 import android.os.Bundle
+import android.view.View
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
-import androidx.core.app.ServiceCompat.stopForeground
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Observer
-
-import com.sunitawebapp.locationtrackingdistance.livedata.FASTEST_INTERVAL
-import com.sunitawebapp.locationtrackingdistance.livedata.INTERVAL
-import com.sunitawebapp.locationtrackingdistance.livedata.LocationViewModel
-import com.sunitawebapp.locationtrackingdistance.service.LocationUpdatesService
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationServices
@@ -36,14 +36,17 @@ import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.FirebaseApp
-import com.google.firebase.database.FirebaseDatabase
 import com.sunitawebapp.locationtrackingdistance.AppController.Companion.applunchnew
-import com.sunitawebapp.locationtrackingdistance.AppController.Companion.storedata
+import com.sunitawebapp.locationtrackingdistance.livedata.FASTEST_INTERVAL
+import com.sunitawebapp.locationtrackingdistance.livedata.INTERVAL
+import com.sunitawebapp.locationtrackingdistance.livedata.LocationViewModel
+import com.sunitawebapp.locationtrackingdistance.service.LocationUpdatesService
 import java.util.*
 
 
-class MainActivity : AppCompatActivity() , OnMapReadyCallback {
+class MainActivity : AppCompatActivity() , OnMapReadyCallback, ConnectionReceiver.ReceiverListener {
   lateinit  var latitude : TextView
   lateinit  var longitude : TextView
   lateinit  var diatance : TextView
@@ -146,6 +149,7 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
         btnStart.setOnClickListener {
             applunchnew=true
             locationViewModel.getLocationData.observe(this, Observer {
+
                 longitude.text = it.longitude.toString()
                 latitude.text = it.latitude.toString()
                 //    info.text = getString(R.string.location_successfully_received)
@@ -157,7 +161,11 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
                 diatance.text=String.format("%.2f", distanceresult / 1000) + "km"
 
                 // storedata(it,distanceresult)
-                getCurrentloaction(it)
+                if (checkConnection()){
+                    getCurrentloaction(it)
+                }
+
+
 
                 /* var firebasedatabase= FirebaseDatabase.getInstance("https://locationonmap-483ef-default-rtdb.firebaseio.com/")
 
@@ -311,13 +319,9 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
 
     }
     override fun onDestroy() {
-
-
-        super.onDestroy()
+         super.onDestroy()
         Toast.makeText(this, "onDestroy", Toast.LENGTH_SHORT).show()
-
-
-   }
+    }
 
     fun getpendingIntent() : PendingIntent{
      /*   var  intent1 =  Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
@@ -330,30 +334,23 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
     fun getCurrentloaction(it : Location){
         var  title=stringToLatLong("${it.latitude.toString()},${it.longitude.toString()}")
         if(marker == null){
-            marker = mMap!!.addMarker(
-                MarkerOptions()
-                    .position(LatLng(it.latitude, it.longitude))
-                    .title(returnedAddress)
-
-            )
+            marker = mMap!!.addMarker(MarkerOptions().position(LatLng(it.latitude, it.longitude)).title(returnedAddress))
         } else {
             marker?.position = LatLng(it.latitude, it.longitude)
           //  marker?.title = returnedAddress
         }
-
         val cameraPosition = CameraPosition.Builder().target(LatLng(it.latitude, it.longitude))
             .zoom(17f)
             .bearing(0f)
             .tilt(45f)
             .build()
-
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(it.latitude, it.longitude), 15f))
         mMap!!.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
         mMap.animateCamera(CameraUpdateFactory.zoomTo(15f), 2000, null);
 
     }
 
-    private fun stringToLatLong(latLongStr: String): LatLng {
+    fun stringToLatLong(latLongStr: String): LatLng {
         val geocoder = Geocoder(this, Locale.getDefault())
 
 
@@ -370,5 +367,86 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
         }
         returnedAddress = strReturnedAddress.toString()
         return LatLng(latitude, longitude)
+    }
+
+     fun checkConnection() : Boolean{
+
+        // initialize intent filter
+        val intentFilter = IntentFilter()
+
+        // add action
+        intentFilter.addAction("android.new.conn.CONNECTIVITY_CHANGE")
+
+        // register receiver
+        registerReceiver(ConnectionReceiver(), intentFilter)
+
+        // Initialize listener
+        ConnectionReceiver.Listener = this
+
+        // Initialize connectivity manager
+        val manager =
+            applicationContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+
+        // Initialize network info
+        val networkInfo = manager.activeNetworkInfo
+
+        // get connection status
+        val isConnected = networkInfo != null && networkInfo.isConnectedOrConnecting
+
+        // display snack bar
+       var isconected= showSnackBar(isConnected)
+         return isconected
+    }
+
+    override fun onNetworkChange(isConnected: Boolean) {
+        // display snack bar
+        showSnackBar(isConnected);
+    }
+
+
+    private fun showSnackBar(isConnected: Boolean) :Boolean{
+
+        // initialize color and message
+        val message: String
+        val color: Int
+
+        // check condition
+        if (isConnected) {
+
+            // when internet is connected
+            // set message
+            message = "Connected to Internet"
+
+            // set text color
+            color = Color.WHITE
+            return true
+        } else {
+
+            // when internet
+            // is disconnected
+            // set message
+            message = "Not Connected to Internet"
+
+            // set text color
+            color = Color.RED
+            return false
+        }
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+        // initialize snack bar
+      //  val snackbar = Snackbar.make(findViewById(R.id.btn_check), message, Snackbar.LENGTH_LONG)
+
+
+        // initialize view
+      //  val view: View = snackbar.view
+
+      /*  // Assign variable
+        val textView: TextView = view.findViewById(R.id.snackbar_text)
+
+        // set text color
+        textView.setTextColor(color)*/
+
+        // show snack bar
+    //    snackbar.show()
+        return false
     }
 }

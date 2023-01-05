@@ -21,11 +21,9 @@ class LocationUpdatesService : LifecycleService(){
     val CHANNEL_ID = "ForegroundServiceChannel"
     var notifyText=""
 
-    private var isGPSEnabled = false
+    var isGPSEnabled = false
     override fun onCreate() {
         super.onCreate()
-
-
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
