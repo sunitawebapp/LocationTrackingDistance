@@ -132,7 +132,18 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, ConnectionReceive
                 diatance.text=String.format("%.2f", distanceresult / 1000) + "km"
 
                 // storedata(it,distanceresult)
-                getCurrentloaction(it)
+
+                try {
+                    if (checkConnection()){
+                        getCurrentloaction(it)
+                    }else{
+                        // initialize snack bar
+                      Snackbar.make(findViewById(R.id.layout), "Not Connected to Internet", Snackbar.LENGTH_LONG).show()
+                    }
+
+                }catch (e : Exception){
+
+                }
 
                 /* var firebasedatabase= FirebaseDatabase.getInstance("https://locationonmap-483ef-default-rtdb.firebaseio.com/")
 
@@ -161,10 +172,19 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, ConnectionReceive
                 diatance.text=String.format("%.2f", distanceresult / 1000) + "km"
 
                 // storedata(it,distanceresult)
-                if (checkConnection()){
-                    getCurrentloaction(it)
-                }
 
+                try {
+                    if (checkConnection()){
+                        getCurrentloaction(it)
+                    }else{
+                        // initialize snack bar
+                       Snackbar.make(findViewById(R.id.layout), "Not Connected to Internet", Snackbar.LENGTH_LONG).show()
+
+                    }
+
+                }catch (e : Exception){
+
+                }
 
 
                 /* var firebasedatabase= FirebaseDatabase.getInstance("https://locationonmap-483ef-default-rtdb.firebaseio.com/")
@@ -422,8 +442,7 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, ConnectionReceive
             return true
         } else {
 
-            // when internet
-            // is disconnected
+            // when internet is disconnected
             // set message
             message = "Not Connected to Internet"
 
@@ -433,7 +452,7 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, ConnectionReceive
         }
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
         // initialize snack bar
-      //  val snackbar = Snackbar.make(findViewById(R.id.btn_check), message, Snackbar.LENGTH_LONG)
+       // val snackbar = Snackbar.make(findViewById(R.id.btn_check), message, Snackbar.LENGTH_LONG)
 
 
         // initialize view
