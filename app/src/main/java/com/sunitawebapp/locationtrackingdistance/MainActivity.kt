@@ -1,7 +1,6 @@
 package com.sunitawebapp.locationtrackingdistance
 
 import android.Manifest
-
 import android.app.AlertDialog
 import android.app.PendingIntent
 import android.content.Context
@@ -9,6 +8,8 @@ import android.content.DialogInterface
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.Canvas
 import android.graphics.Color
 import android.location.Address
 import android.location.Geocoder
@@ -16,7 +17,6 @@ import android.location.Location
 import android.net.ConnectivityManager
 import android.os.Build
 import android.os.Bundle
-import android.view.View
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
@@ -32,10 +32,7 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.CameraPosition
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.Marker
-import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.gms.maps.model.*
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.FirebaseApp
 import com.sunitawebapp.locationtrackingdistance.AppController.Companion.applunchnew
@@ -353,12 +350,15 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, ConnectionReceive
 
     fun getCurrentloaction(it : Location){
         var  title=stringToLatLong("${it.latitude.toString()},${it.longitude.toString()}")
+          var markertrack: Marker?=null
         if(marker == null){
-            marker = mMap!!.addMarker(MarkerOptions().position(LatLng(it.latitude, it.longitude)).title(returnedAddress))
+            marker = mMap!!.addMarker(MarkerOptions().position(LatLng(it.latitude, it.longitude)).title(returnedAddress).icon(BitmapFromVector(getApplicationContext(), R.drawable.directions_bike_icon)))
         } else {
             marker?.position = LatLng(it.latitude, it.longitude)
           //  marker?.title = returnedAddress
         }
+        markertrack = mMap!!.addMarker(MarkerOptions().position(LatLng(it.latitude, it.longitude)).title(returnedAddress).icon(BitmapFromVector(getApplicationContext(), R.drawable.circle_icon)))
+       // mMap.isMyLocationEnabled = true
         val cameraPosition = CameraPosition.Builder().target(LatLng(it.latitude, it.longitude))
             .zoom(17f)
             .bearing(0f)
@@ -369,7 +369,36 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, ConnectionReceive
         mMap.animateCamera(CameraUpdateFactory.zoomTo(15f), 2000, null);
 
     }
+    private fun BitmapFromVector(context: Context, vectorResId: Int): BitmapDescriptor? {
+        // below line is use to generate a drawable.
+        val vectorDrawable = ContextCompat.getDrawable(context, vectorResId)
 
+        // below line is use to set bounds to our vector drawable.
+        vectorDrawable!!.setBounds(
+            0,
+            0,
+            vectorDrawable.intrinsicWidth,
+            vectorDrawable.intrinsicHeight
+        )
+
+        // below line is use to create a bitmap for our
+        // drawable which we have added.
+        val bitmap = Bitmap.createBitmap(
+            vectorDrawable.intrinsicWidth,
+            vectorDrawable.intrinsicHeight,
+            Bitmap.Config.ARGB_8888
+        )
+
+        // below line is use to add bitmap in our canvas.
+        val canvas = Canvas(bitmap)
+
+        // below line is use to draw our
+        // vector drawable in canvas.
+        vectorDrawable.draw(canvas)
+
+        // after generating our bitmap we are returning our bitmap.
+        return BitmapDescriptorFactory.fromBitmap(bitmap)
+    }
     fun stringToLatLong(latLongStr: String): LatLng {
         val geocoder = Geocoder(this, Locale.getDefault())
 
@@ -414,8 +443,8 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, ConnectionReceive
         val isConnected = networkInfo != null && networkInfo.isConnectedOrConnecting
 
         // display snack bar
-       var isconected= showSnackBar(isConnected)
-         return isconected
+         var isconnected= showSnackBar(isConnected)
+         return isconnected
     }
 
     override fun onNetworkChange(isConnected: Boolean) {
