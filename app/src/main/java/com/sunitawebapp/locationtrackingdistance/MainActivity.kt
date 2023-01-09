@@ -352,9 +352,14 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, ConnectionReceive
         var  title=stringToLatLong("${it.latitude.toString()},${it.longitude.toString()}")
           var markertrack: Marker?=null
         if(marker == null){
-            marker = mMap!!.addMarker(MarkerOptions().position(LatLng(it.latitude, it.longitude)).title(returnedAddress).icon(BitmapFromVector(getApplicationContext(), R.drawable.directions_bike_icon)))
+            marker = mMap!!.addMarker(MarkerOptions().position(LatLng(it.latitude, it.longitude))
+                .title(returnedAddress)
+                .icon(BitmapFromVector(getApplicationContext(), R.drawable.directions_bike_icon)))
+            marker?.showInfoWindow()
+
         } else {
             marker?.position = LatLng(it.latitude, it.longitude)
+            marker?.showInfoWindow()
           //  marker?.title = returnedAddress
         }
         markertrack = mMap!!.addMarker(MarkerOptions().position(LatLng(it.latitude, it.longitude)).title(returnedAddress).icon(BitmapFromVector(getApplicationContext(), R.drawable.circle_icon)))
