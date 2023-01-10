@@ -17,6 +17,7 @@ import android.location.Location
 import android.net.ConnectivityManager
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
@@ -58,7 +59,9 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, ConnectionReceive
     private val locationViewModel: LocationViewModel by viewModels()
     lateinit var btnStart : Button
     lateinit var btnStop : Button
-
+    var handler: Handler = Handler()
+    var runnable: Runnable? = null
+    var delay = 1000
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -349,21 +352,32 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, ConnectionReceive
     }
 
     fun getCurrentloaction(it : Location){
+
         var  title=stringToLatLong("${it.latitude.toString()},${it.longitude.toString()}")
-          var markertrack: Marker?=null
+     //     var markertrack: Marker?=null
         if(marker == null){
             marker = mMap!!.addMarker(MarkerOptions().position(LatLng(it.latitude, it.longitude))
                 .title(returnedAddress)
-                .icon(BitmapFromVector(getApplicationContext(), R.drawable.directions_bike_icon)))
+                .icon(BitmapFromVector(getApplicationContext(), R.drawable.directions_bike_icon))
+
+                )
             marker?.showInfoWindow()
 
         } else {
             marker?.position = LatLng(it.latitude, it.longitude)
             marker?.showInfoWindow()
+
           //  marker?.title = returnedAddress
         }
-        markertrack = mMap!!.addMarker(MarkerOptions().position(LatLng(it.latitude, it.longitude)).title(returnedAddress).icon(BitmapFromVector(getApplicationContext(), R.drawable.circle_icon)))
-       // mMap.isMyLocationEnabled = true
+     //   markertrack = mMap!!.addMarker(MarkerOptions().position(LatLng(it.latitude, it.longitude)).title(returnedAddress).icon(BitmapFromVector(getApplicationContext(), R.drawable.circle_icon)))
+
+      /*  handler.postDelayed(Runnable {
+            handler.postDelayed(runnable!!, delay.toLong())
+            markertrack = mMap!!.addMarker(MarkerOptions().position(LatLng(it.latitude, it.longitude)).title(returnedAddress).icon(BitmapFromVector(getApplicationContext(), R.drawable.circle_icon)))
+        }.also { runnable = it }, delay.toLong())
+*/
+
+        mMap.isMyLocationEnabled = true
         val cameraPosition = CameraPosition.Builder().target(LatLng(it.latitude, it.longitude))
             .zoom(17f)
             .bearing(0f)
