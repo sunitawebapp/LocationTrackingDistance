@@ -326,6 +326,8 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, ConnectionReceive
         } else if (requestCode == BACKGROUND_LOCATION_PERMISSION_CODE) {
             if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 // User granted for Background Location Permission.
+
+
             } else {
                 // User declined for Background Location Permission.
             }
@@ -365,6 +367,7 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, ConnectionReceive
 
         } else {
             marker?.position = LatLng(it.latitude, it.longitude)
+            marker?.title=returnedAddress
             marker?.showInfoWindow()
 
           //  marker?.title = returnedAddress
