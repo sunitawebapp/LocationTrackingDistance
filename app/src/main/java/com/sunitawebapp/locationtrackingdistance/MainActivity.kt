@@ -1,12 +1,14 @@
 package com.sunitawebapp.locationtrackingdistance
 
 import android.Manifest
+import android.app.Activity
 import android.app.AlertDialog
 import android.app.PendingIntent
 import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.IntentSender.SendIntentException
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Canvas
@@ -26,9 +28,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Observer
-import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationRequest
-import com.google.android.gms.location.LocationServices
+import com.google.android.gms.common.api.ResolvableApiException
+import com.google.android.gms.location.*
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -48,6 +49,9 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, ConnectionReceive
   lateinit  var latitude : TextView
   lateinit  var longitude : TextView
   lateinit  var diatance : TextView
+
+  var LOCATION_UPDATE_INTERVAL=5000
+    var LOCATION_UPDATE_FASTEST_INTERVAL=3000
   var LOCATION_PERMISSION_CODE =1
     var BACKGROUND_LOCATION_PERMISSION_CODE =2
     var currentpoint : LatLng?=null
@@ -62,6 +66,7 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, ConnectionReceive
     var handler: Handler = Handler()
     var runnable: Runnable? = null
     var delay = 1000
+    var REQUEST_CODE_CHECK_SETTINGS=101
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -71,6 +76,8 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, ConnectionReceive
         longitude=findViewById(R.id.longitude)
         btnStart=findViewById(R.id.btnStart)
         btnStop=findViewById(R.id.btnStop)
+
+        checkGPS()
 
         FirebaseApp.initializeApp(this);
 
@@ -159,6 +166,7 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, ConnectionReceive
         }
         btnStart.setOnClickListener {
             applunchnew=true
+
             locationViewModel.getLocationData.observe(this, Observer {
 
                 longitude.text = it.longitude.toString()
@@ -225,7 +233,39 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, ConnectionReceive
         }
         return  distance
     }*/
+   fun checkGPS(){
+    val locationRequest = LocationRequest.create()
+        .setInterval(LOCATION_UPDATE_INTERVAL.toLong())
+        .setFastestInterval(LOCATION_UPDATE_FASTEST_INTERVAL.toLong())
+        .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
 
+    val builder = LocationSettingsRequest.Builder()
+        .addLocationRequest(locationRequest)
+
+    LocationServices
+        .getSettingsClient(this)
+        .checkLocationSettings(builder.build())
+        .addOnSuccessListener(
+            this
+        ) { response: LocationSettingsResponse? -> }
+        .addOnFailureListener(
+            this
+        ) { ex: java.lang.Exception? ->
+            if (ex is ResolvableApiException) {
+                // Location settings are NOT satisfied,  but this can be fixed  by showing the user a dialog.
+                try {
+                    // Show the dialog by calling startResolutionForResult(),  and check the result in onActivityResult().
+                    val resolvable = ex as ResolvableApiException
+                    resolvable.startResolutionForResult(
+                        this@MainActivity,
+                        REQUEST_CODE_CHECK_SETTINGS
+                    )
+                } catch (sendEx: SendIntentException) {
+                    // Ignore the error.
+                }
+            }
+        }
+}
     private fun askForLocationPermission() {
         if (ActivityCompat.shouldShowRequestPermissionRationale(
                 this@MainActivity,
@@ -335,6 +375,17 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, ConnectionReceive
 
     }
 
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        if (REQUEST_CODE_CHECK_SETTINGS == requestCode) {
+            if(Activity.RESULT_OK == resultCode){
+                //user clicked OK, you can startUpdatingLocation(...);
+
+            }else{
+                //user clicked cancel: informUserImportanceOfLocationAndPresentRequestAgain();
+            }
+        }
+        super.onActivityResult(requestCode, resultCode, data)
+    }
 
     override fun onMapReady(map: GoogleMap) {
         mMap = map;
