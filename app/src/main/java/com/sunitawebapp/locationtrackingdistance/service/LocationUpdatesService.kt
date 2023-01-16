@@ -73,6 +73,7 @@ class LocationUpdatesService : LifecycleService(){
             .setSmallIcon(R.drawable.ic_launcher_background)
             .setContentTitle("location Tracking")
             .setContentText("$notifyText")
+            .setNotificationSilent()
 
         // Add as notification
         val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
