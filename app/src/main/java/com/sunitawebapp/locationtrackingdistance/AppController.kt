@@ -44,6 +44,31 @@ class AppController : Application() {
             return distance
         }
 
+        fun distanceWithContinueRunCalculate ( currentPoint: LatLng?)  : Double {
+            if (previouspoint != null) {
+                var currtpoint = currentPoint
+                distance = SphericalUtil.computeDistanceBetween(previouspoint, currtpoint) + distance;
+                Log.d("sunita", "observeLocationUpdates: " + previouspoint + " " + currtpoint)
+                Log.d(
+                    "sunitya",
+                    "observeLocationUpdates: " + String.format("%.2f", distance / 1000) + "km"
+                )
+                previouspoint = currtpoint
+
+            }
+            else {
+                distance = SphericalUtil.computeDistanceBetween(currentPoint, currentPoint) + distance;
+                Log.d("sunita", "observeLocationUpdates: " + currentPoint + " " + currentPoint)
+                previouspoint = currentPoint
+
+                Log.d(
+                    "sunitya",
+                    "observeLocationUpdates: " + String.format("%.2f", distance / 1000) + "km"
+                )
+            }
+            return distance
+        }
+
         fun storedata(it : Location,distanceresult : Double){
             var firebasedatabase= FirebaseDatabase.getInstance("https://locationonmap-483ef-default-rtdb.firebaseio.com/")
 

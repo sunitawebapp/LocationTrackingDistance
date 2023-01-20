@@ -19,7 +19,9 @@ import android.location.Location
 import android.net.ConnectivityManager
 import android.os.Build
 import android.os.Bundle
+import android.os.CountDownTimer
 import android.os.Handler
+import android.util.Log
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
@@ -49,6 +51,7 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, ConnectionReceive
   lateinit  var latitude : TextView
   lateinit  var longitude : TextView
   lateinit  var diatance : TextView
+  lateinit var diatanceWithContinueRun: TextView
 
   var LOCATION_UPDATE_INTERVAL=5000
     var LOCATION_UPDATE_FASTEST_INTERVAL=3000
@@ -67,17 +70,25 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, ConnectionReceive
     var runnable: Runnable? = null
     var delay = 1000
     var REQUEST_CODE_CHECK_SETTINGS=101
+    var isarea=false
+
+    var distance=0.0
+    var previouspoint: LatLng? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
+        diatanceWithContinueRun=findViewById(R.id.diatanceWithContinueRun)
         diatance=findViewById(R.id.diatance)
         latitude=findViewById(R.id.latitude)
         longitude=findViewById(R.id.longitude)
         btnStart=findViewById(R.id.btnStart)
         btnStop=findViewById(R.id.btnStop)
 
-        checkGPS()
+   /*     Before 5m prelc of redious same as currlc
+
+        if cuurle radius within same as prelc
+*/
+                checkGPS()
 
         FirebaseApp.initializeApp(this);
 
@@ -127,6 +138,7 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, ConnectionReceive
         )
 */
         if (applunchnew){
+            var  prepoint: LatLng?=null
             locationViewModel.getLocationData.observe(this, Observer {
                 longitude.text = it.longitude.toString()
                 latitude.text = it.latitude.toString()
@@ -137,12 +149,41 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, ConnectionReceive
 
                 var distanceresult=AppController.distanceCalculate(currentpoint)
                 diatance.text=String.format("%.2f", distanceresult / 1000) + "km"
+                // time count down for 30 seconds,
+                // with 1 second as countDown interval
+                object : CountDownTimer(300000, 1000) {
+
+                    // Callback function, fired on regular interval
+                    override fun onTick(millisUntilFinished: Long) {
+                        //    textView.setText("seconds remaining: " + millisUntilFinished / 1000)
+                        Log.d("time", "onTick: seconds remaining"+millisUntilFinished / 1000)
+                    }
+
+                    // Callback function, fired
+                    // when the time is up
+                    override fun onFinish() {
+                        Log.d("time", "onTick: seconds remaining done")
+                        //   textView.setText("done!")
+                    }
+                }.start()
+
 
                 // storedata(it,distanceresult)
 
                 try {
                     if (checkConnection()){
-                        getCurrentloaction(it)
+
+
+                        if (previouspoint==null){
+                            prepoint=currentpoint
+
+                        }else{
+
+                            previouspoint=prepoint
+                            prepoint=currentpoint
+                        }
+                     //   getCurrentloaction(it)
+                        getCurrentloactionithContinueRun(it,prepoint)
                     }else{
                         // initialize snack bar
                       Snackbar.make(findViewById(R.id.layout), "Not Connected to Internet", Snackbar.LENGTH_LONG).show()
@@ -166,7 +207,7 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, ConnectionReceive
         }
         btnStart.setOnClickListener {
             applunchnew=true
-
+            var  prepoint: LatLng?=null
             locationViewModel.getLocationData.observe(this, Observer {
 
                 longitude.text = it.longitude.toString()
@@ -176,6 +217,8 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, ConnectionReceive
 
                 currentpoint= LatLng(it.latitude, it.longitude)
 
+
+
                 var distanceresult=AppController.distanceCalculate(currentpoint)
                 diatance.text=String.format("%.2f", distanceresult / 1000) + "km"
 
@@ -183,7 +226,17 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, ConnectionReceive
 
                 try {
                     if (checkConnection()){
-                        getCurrentloaction(it)
+                        if (previouspoint==null){
+                            prepoint=currentpoint
+
+                        }else{
+
+                            previouspoint=prepoint
+                            prepoint=currentpoint
+                        }
+                            //getCurrentloaction(it)
+                        getCurrentloactionithContinueRun(it,prepoint)
+
                     }else{
                         // initialize snack bar
                        Snackbar.make(findViewById(R.id.layout), "Not Connected to Internet", Snackbar.LENGTH_LONG).show()
@@ -404,7 +457,7 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, ConnectionReceive
         return PendingIntent.getBroadcast(this,0,intent,PendingIntent.FLAG_CANCEL_CURRENT)
     }
 
-    fun getCurrentloaction(it : Location){
+    fun getCurrentloaction(it : Location) : Boolean{
 
         var  title=stringToLatLong("${it.latitude.toString()},${it.longitude.toString()}")
      //     var markertrack: Marker?=null
@@ -430,7 +483,30 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, ConnectionReceive
             markertrack = mMap!!.addMarker(MarkerOptions().position(LatLng(it.latitude, it.longitude)).title(returnedAddress).icon(BitmapFromVector(getApplicationContext(), R.drawable.circle_icon)))
         }.also { runnable = it }, delay.toLong())
 */
+     /*   var areaCircle=  mMap.addCircle(CircleOptions().radius(10.0)
+            .center(LatLng(it.latitude, it.longitude))
 
+            .strokeWidth(5f)
+            .strokeColor(Color.RED)
+            .fillColor(0x550000FF)
+        )*/
+  /*   var areaCircle=  mMap.addCircle(CircleOptions().radius(10.0))
+
+        val distance = FloatArray(2)
+
+        Location.distanceBetween(
+            marker!!.getPosition().latitude, marker!!.getPosition().longitude,
+            areaCircle.getCenter().latitude, areaCircle.getCenter().longitude, distance
+        )
+
+        if (distance[0] > areaCircle.getRadius()) {
+            isarea=false
+            Toast.makeText(this, "outside", Toast.LENGTH_LONG).show()
+
+        } else {
+            isarea=true
+            Toast.makeText(this, "Inside", Toast.LENGTH_LONG).show()
+        }*/
         mMap.isMyLocationEnabled = true
         val cameraPosition = CameraPosition.Builder().target(LatLng(it.latitude, it.longitude))
             .zoom(17f)
@@ -440,6 +516,68 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, ConnectionReceive
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(it.latitude, it.longitude), 15f))
         mMap!!.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
         mMap.animateCamera(CameraUpdateFactory.zoomTo(15f), 2000, null);
+
+        return isarea
+
+    }
+
+    fun getCurrentloactionithContinueRun(it: Location, prepoint: LatLng?) : Boolean{
+
+        var  title=stringToLatLong("${it.latitude.toString()},${it.longitude.toString()}")
+        //     var markertrack: Marker?=null
+        if(marker == null){
+            marker = mMap!!.addMarker(MarkerOptions().position(LatLng(it.latitude, it.longitude))
+                .title(returnedAddress)
+                .icon(BitmapFromVector(getApplicationContext(), R.drawable.directions_bike_icon))
+
+            )
+            marker?.showInfoWindow()
+
+        } else {
+            marker?.position = LatLng(it.latitude, it.longitude)
+            marker?.title=returnedAddress
+            marker?.showInfoWindow()
+
+        }
+
+
+           var areaCircle=  mMap.addCircle(CircleOptions().radius(2.0)
+               .center(prepoint?.let { it1 -> LatLng(prepoint.latitude, prepoint.longitude) })
+
+               .strokeWidth(5f)
+               .strokeColor(Color.RED)
+               .fillColor(0x550000FF)
+           )
+
+
+              val distance = FloatArray(2)
+
+              Location.distanceBetween(
+                  marker!!.getPosition().latitude, marker!!.getPosition().longitude,
+                  areaCircle.getCenter().latitude, areaCircle.getCenter().longitude, distance
+              )
+
+              if (distance[0] > areaCircle.getRadius()) {
+                  isarea=false
+                  var distanceresult=AppController.distanceCalculate(LatLng(it.latitude,it.longitude))
+                  diatanceWithContinueRun.text=String.format("%.2f", distanceresult / 1000) + "km"
+                  Toast.makeText(this, "outside", Toast.LENGTH_LONG).show()
+
+              } else {
+                  isarea=true
+                  Toast.makeText(this, "Inside", Toast.LENGTH_LONG).show()
+              }
+        mMap.isMyLocationEnabled = true
+        val cameraPosition = CameraPosition.Builder().target(LatLng(it.latitude, it.longitude))
+            .zoom(17f)
+            .bearing(0f)
+            .tilt(45f)
+            .build()
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(it.latitude, it.longitude), 15f))
+        mMap!!.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+        mMap.animateCamera(CameraUpdateFactory.zoomTo(15f), 2000, null);
+
+        return isarea
 
     }
     private fun BitmapFromVector(context: Context, vectorResId: Int): BitmapDescriptor? {
