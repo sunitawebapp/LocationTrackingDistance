@@ -48,6 +48,7 @@ import java.util.*
 
 
 class MainActivity : AppCompatActivity() , OnMapReadyCallback, ConnectionReceiver.ReceiverListener {
+    var  prepoint: LatLng?=null
   lateinit  var latitude : TextView
   lateinit  var longitude : TextView
   lateinit  var diatance : TextView
@@ -88,6 +89,7 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, ConnectionReceive
 
         if cuurle radius within same as prelc
 */
+
                 checkGPS()
 
         FirebaseApp.initializeApp(this);
@@ -151,21 +153,7 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, ConnectionReceive
                 diatance.text=String.format("%.2f", distanceresult / 1000) + "km"
                 // time count down for 30 seconds,
                 // with 1 second as countDown interval
-                object : CountDownTimer(300000, 1000) {
 
-                    // Callback function, fired on regular interval
-                    override fun onTick(millisUntilFinished: Long) {
-                        //    textView.setText("seconds remaining: " + millisUntilFinished / 1000)
-                        Log.d("time", "onTick: seconds remaining"+millisUntilFinished / 1000)
-                    }
-
-                    // Callback function, fired
-                    // when the time is up
-                    override fun onFinish() {
-                        Log.d("time", "onTick: seconds remaining done")
-                        //   textView.setText("done!")
-                    }
-                }.start()
 
 
                 // storedata(it,distanceresult)
@@ -207,7 +195,8 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, ConnectionReceive
         }
         btnStart.setOnClickListener {
             applunchnew=true
-            var  prepoint: LatLng?=null
+
+
             locationViewModel.getLocationData.observe(this, Observer {
 
                 longitude.text = it.longitude.toString()
@@ -222,20 +211,22 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, ConnectionReceive
                 var distanceresult=AppController.distanceCalculate(currentpoint)
                 diatance.text=String.format("%.2f", distanceresult / 1000) + "km"
 
+
+
                 // storedata(it,distanceresult)
 
                 try {
                     if (checkConnection()){
-                        if (previouspoint==null){
+                       /* if (previouspoint==null){
                             prepoint=currentpoint
 
                         }else{
 
-                            previouspoint=prepoint
-                            prepoint=currentpoint
-                        }
-                            //getCurrentloaction(it)
-                        getCurrentloactionithContinueRun(it,prepoint)
+                           // previouspoint=prepoint
+                           // prepoint=currentpoint
+                        }*/
+                            getCurrentloaction(it)
+                     //   getCurrentloactionithContinueRun(it,prepoint)
 
                     }else{
                         // initialize snack bar
@@ -256,6 +247,12 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, ConnectionReceive
                   databasereference.child("Distance").setValue(String.format("%.2f", distance!! / 1000) + "km")  */
 
             })
+            currentpoint?.let {
+                countTimer()
+            }
+
+
+
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 startForegroundService(Intent(this, LocationUpdatesService::class.java))
             }
@@ -707,5 +704,64 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, ConnectionReceive
         // show snack bar
     //    snackbar.show()
         return false
+    }
+
+    fun countTimer() {
+
+        object : CountDownTimer(300000, 1000) {
+
+            // Callback function, fired on regular interval
+            override fun onTick(millisUntilFinished: Long) {
+                //    textView.setText("seconds remaining: " + millisUntilFinished / 1000)
+                Log.d("timeing", "onTick: seconds remaining"+millisUntilFinished / 1000)
+
+                if (previouspoint==null){
+                    prepoint=currentpoint
+
+                }else{
+
+
+                    prepoint=currentpoint
+                }
+            }
+
+            // Callback function, fired
+            // when the time is up
+            override fun onFinish() {
+                previouspoint=prepoint
+                Log.d("timeing", "onTick: seconds remaining done")
+
+                var areaCircle=  mMap.addCircle(CircleOptions().radius(2.0)
+                    .center(prepoint?.let { it1 -> LatLng(prepoint!!.latitude, prepoint!!.longitude) })
+                    .strokeWidth(5f)
+                    .strokeColor(Color.RED)
+                    .fillColor(0x550000FF)
+                )
+
+
+                val distance = FloatArray(2)
+
+                Location.distanceBetween(
+                    marker!!.getPosition().latitude, marker!!.getPosition().longitude,
+                    areaCircle.getCenter().latitude, areaCircle.getCenter().longitude, distance
+                )
+
+                if (distance[0] > areaCircle.getRadius()) {
+                    isarea=false
+                    var distanceresult=AppController.distanceCalculate(LatLng(currentpoint!!.latitude,currentpoint!!.longitude))
+                    diatanceWithContinueRun.text=String.format("%.2f", distanceresult / 1000) + "km"
+                    Toast.makeText(this@MainActivity, "outside", Toast.LENGTH_LONG).show()
+                    countTimer()
+
+                } else {
+                    isarea=true
+                    Toast.makeText(this@MainActivity, "Inside", Toast.LENGTH_LONG).show()
+
+                    countTimer()
+                }
+                //   textView.setText("done!")
+            }
+        }.start()
+
     }
 }
