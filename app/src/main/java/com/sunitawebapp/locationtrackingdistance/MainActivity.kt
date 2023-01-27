@@ -54,6 +54,8 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, ConnectionReceive
   lateinit  var diatance : TextView
   lateinit var diatanceWithContinueRun: TextView
 
+    var  distancestore=0.0
+
   var LOCATION_UPDATE_INTERVAL=5000
     var LOCATION_UPDATE_FASTEST_INTERVAL=3000
   var LOCATION_PERMISSION_CODE =1
@@ -153,7 +155,11 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, ConnectionReceive
                 diatance.text=String.format("%.2f", distanceresult / 1000) + "km"
                 // time count down for 30 seconds,
                 // with 1 second as countDown interval
+                if (previouspoint==null){
+                    previouspoint=LatLng(it.latitude, it.longitude)
+                    countTimer()
 
+                }
 
 
                 // storedata(it,distanceresult)
@@ -162,16 +168,9 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, ConnectionReceive
                     if (checkConnection()){
 
 
-                        if (previouspoint==null){
-                            prepoint=currentpoint
 
-                        }else{
-
-                            previouspoint=prepoint
-                            prepoint=currentpoint
-                        }
-                     //   getCurrentloaction(it)
-                        getCurrentloactionithContinueRun(it,prepoint)
+                        getCurrentloaction(it)
+                        //getCurrentloactionithContinueRun(it,prepoint)
                     }else{
                         // initialize snack bar
                       Snackbar.make(findViewById(R.id.layout), "Not Connected to Internet", Snackbar.LENGTH_LONG).show()
@@ -205,6 +204,11 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, ConnectionReceive
 
 
                 currentpoint= LatLng(it.latitude, it.longitude)
+              if (previouspoint==null){
+                  previouspoint=LatLng(it.latitude, it.longitude)
+                    countTimer()
+
+                }
 
 
 
@@ -247,10 +251,10 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, ConnectionReceive
                   databasereference.child("Distance").setValue(String.format("%.2f", distance!! / 1000) + "km")  */
 
             })
-            currentpoint?.let {
+            /*currentpoint?.let {
                 countTimer()
             }
-
+*/
 
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -266,23 +270,6 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, ConnectionReceive
     }
 
 
-/*    fun distanceCalculate ()  : Double{
-        if (endpoint!=null){
-            var thirdpont=startpoint
-            distance = SphericalUtil.computeDistanceBetween(endpoint, thirdpont)+distance;
-            Log.d("sunita", "observeLocationUpdates: "+endpoint+" "+thirdpont)
-            Log.d("sunitya", "observeLocationUpdates: "+String.format("%.2f", distance / 1000) + "km")
-            endpoint=thirdpont
-
-        }else{
-            distance = SphericalUtil.computeDistanceBetween(startpoint, startpoint)+distance;
-            Log.d("sunita", "observeLocationUpdates: "+startpoint+" "+startpoint)
-            endpoint=startpoint
-
-            Log.d("sunitya", "observeLocationUpdates: "+String.format("%.2f", distance / 1000) + "km")
-        }
-        return  distance
-    }*/
    fun checkGPS(){
     val locationRequest = LocationRequest.create()
         .setInterval(LOCATION_UPDATE_INTERVAL.toLong())
@@ -715,24 +702,17 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, ConnectionReceive
                 //    textView.setText("seconds remaining: " + millisUntilFinished / 1000)
                 Log.d("timeing", "onTick: seconds remaining"+millisUntilFinished / 1000)
 
-                if (previouspoint==null){
-                    prepoint=currentpoint
 
-                }else{
-
-
-                    prepoint=currentpoint
-                }
             }
 
             // Callback function, fired
             // when the time is up
             override fun onFinish() {
-                previouspoint=prepoint
+
                 Log.d("timeing", "onTick: seconds remaining done")
 
-                var areaCircle=  mMap.addCircle(CircleOptions().radius(2.0)
-                    .center(prepoint?.let { it1 -> LatLng(prepoint!!.latitude, prepoint!!.longitude) })
+                var areaCircle=  mMap.addCircle(CircleOptions().radius(10.0)
+                    .center(previouspoint?.let { it1 -> LatLng(previouspoint!!.latitude, previouspoint!!.longitude) })
                     .strokeWidth(5f)
                     .strokeColor(Color.RED)
                     .fillColor(0x550000FF)
@@ -748,16 +728,21 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, ConnectionReceive
 
                 if (distance[0] > areaCircle.getRadius()) {
                     isarea=false
-                    var distanceresult=AppController.distanceCalculate(LatLng(currentpoint!!.latitude,currentpoint!!.longitude))
-                    diatanceWithContinueRun.text=String.format("%.2f", distanceresult / 1000) + "km"
+                    var distanceresult=AppController.distanceWithContinueRunCalculate(LatLng(currentpoint!!.latitude,currentpoint!!.longitude))
+                 distancestore=   distancestore+distanceresult
+                    diatanceWithContinueRun.text=String.format("%.2f", distancestore / 1000) + "km"
                     Toast.makeText(this@MainActivity, "outside", Toast.LENGTH_LONG).show()
+
+                    previouspoint=LatLng(currentpoint!!.latitude,currentpoint!!.longitude)
                     countTimer()
+
 
                 } else {
                     isarea=true
                     Toast.makeText(this@MainActivity, "Inside", Toast.LENGTH_LONG).show()
-
+                    previouspoint=LatLng(currentpoint!!.latitude,currentpoint!!.longitude)
                     countTimer()
+
                 }
                 //   textView.setText("done!")
             }
