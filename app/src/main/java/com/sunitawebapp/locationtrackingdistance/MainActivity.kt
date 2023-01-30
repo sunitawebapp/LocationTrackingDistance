@@ -40,6 +40,7 @@ import com.google.android.gms.maps.model.*
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.FirebaseApp
 import com.sunitawebapp.locationtrackingdistance.AppController.Companion.applunchnew
+import com.sunitawebapp.locationtrackingdistance.AppController.Companion.distancestore
 import com.sunitawebapp.locationtrackingdistance.livedata.FASTEST_INTERVAL
 import com.sunitawebapp.locationtrackingdistance.livedata.INTERVAL
 import com.sunitawebapp.locationtrackingdistance.livedata.LocationViewModel
@@ -54,7 +55,7 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, ConnectionReceive
   lateinit  var diatance : TextView
   lateinit var diatanceWithContinueRun: TextView
 
-    var  distancestore=0.0
+
 
   var LOCATION_UPDATE_INTERVAL=5000
     var LOCATION_UPDATE_FASTEST_INTERVAL=3000
@@ -713,9 +714,11 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, ConnectionReceive
 
                 var areaCircle=  mMap.addCircle(CircleOptions().radius(10.0)
                     .center(previouspoint?.let { it1 -> LatLng(previouspoint!!.latitude, previouspoint!!.longitude) })
-                    .strokeWidth(5f)
+                    .fillColor(Color.TRANSPARENT)  //default
+                    .strokeColor(Color.TRANSPARENT)
+                   /* .strokeWidth(5f)
                     .strokeColor(Color.RED)
-                    .fillColor(0x550000FF)
+                    .fillColor(0x550000FF)*/
                 )
 
 
@@ -728,8 +731,8 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, ConnectionReceive
 
                 if (distance[0] > areaCircle.getRadius()) {
                     isarea=false
-                    var distanceresult=AppController.distanceWithContinueRunCalculate(LatLng(currentpoint!!.latitude,currentpoint!!.longitude))
-             //    distancestore=   distancestore+distanceresult
+                    var distanceresult=AppController.distanceWithContinueRunCalculate( LatLng(previouspoint!!.latitude, previouspoint!!.longitude) ,LatLng(currentpoint!!.latitude,currentpoint!!.longitude))
+               //   distancestore=   distancestore+distanceresult
                     diatanceWithContinueRun.text=String.format("%.2f", distanceresult / 1000) + "km"
                     Toast.makeText(this@MainActivity, "outside", Toast.LENGTH_LONG).show()
 

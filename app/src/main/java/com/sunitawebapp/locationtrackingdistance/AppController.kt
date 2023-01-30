@@ -16,6 +16,7 @@ class AppController : Application() {
     }
 
     companion object{
+        var  distancestore=0.0
         var applunchnew : Boolean=false
         var distance=0.0
         var previouspoint: LatLng? = null
@@ -47,28 +48,8 @@ class AppController : Application() {
             return distance
         }
 
-        fun distanceWithContinueRunCalculate ( currentPoint: LatLng?)  : Double {
-            if (previpoint != null) {
-                var currtpoint = currentPoint
-                distan = SphericalUtil.computeDistanceBetween(previpoint, currtpoint) + distan;
-                Log.d("sunita", "observeLocationUpdates: " + previpoint + " " + currtpoint)
-                Log.d(
-                    "sunitya",
-                    "observeLocationUpdates: " + String.format("%.2f", distan / 1000) + "km"
-                )
-                previpoint = currtpoint
-
-            }
-            else {
-                distan = SphericalUtil.computeDistanceBetween(currentPoint, currentPoint) + distan;
-                Log.d("sunita", "observeLocationUpdates: " + currentPoint + " " + currentPoint)
-                previpoint = currentPoint
-
-                Log.d(
-                    "sunitya",
-                    "observeLocationUpdates: " + String.format("%.2f", distan / 1000) + "km"
-                )
-            }
+        fun distanceWithContinueRunCalculate (previousPoint: LatLng?, currentPoint: LatLng?)  : Double {
+            distan = SphericalUtil.computeDistanceBetween(previousPoint, currentPoint) + distan;
             return distan
         }
 
