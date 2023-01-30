@@ -729,8 +729,8 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, ConnectionReceive
                 if (distance[0] > areaCircle.getRadius()) {
                     isarea=false
                     var distanceresult=AppController.distanceWithContinueRunCalculate(LatLng(currentpoint!!.latitude,currentpoint!!.longitude))
-                 distancestore=   distancestore+distanceresult
-                    diatanceWithContinueRun.text=String.format("%.2f", distancestore / 1000) + "km"
+             //    distancestore=   distancestore+distanceresult
+                    diatanceWithContinueRun.text=String.format("%.2f", distanceresult / 1000) + "km"
                     Toast.makeText(this@MainActivity, "outside", Toast.LENGTH_LONG).show()
 
                     previouspoint=LatLng(currentpoint!!.latitude,currentpoint!!.longitude)

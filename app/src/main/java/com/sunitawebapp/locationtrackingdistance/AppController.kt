@@ -19,6 +19,9 @@ class AppController : Application() {
         var applunchnew : Boolean=false
         var distance=0.0
         var previouspoint: LatLng? = null
+
+        var distan=0.0
+        var previpoint: LatLng? = null
         fun distanceCalculate ( currentPoint: LatLng?)  : Double {
             if (previouspoint != null) {
                 var currtpoint = currentPoint
@@ -45,28 +48,28 @@ class AppController : Application() {
         }
 
         fun distanceWithContinueRunCalculate ( currentPoint: LatLng?)  : Double {
-            if (previouspoint != null) {
+            if (previpoint != null) {
                 var currtpoint = currentPoint
-                distance = SphericalUtil.computeDistanceBetween(previouspoint, currtpoint) + distance;
-                Log.d("sunita", "observeLocationUpdates: " + previouspoint + " " + currtpoint)
+                distan = SphericalUtil.computeDistanceBetween(previpoint, currtpoint) + distan;
+                Log.d("sunita", "observeLocationUpdates: " + previpoint + " " + currtpoint)
                 Log.d(
                     "sunitya",
-                    "observeLocationUpdates: " + String.format("%.2f", distance / 1000) + "km"
+                    "observeLocationUpdates: " + String.format("%.2f", distan / 1000) + "km"
                 )
-                previouspoint = currtpoint
+                previpoint = currtpoint
 
             }
             else {
-                distance = SphericalUtil.computeDistanceBetween(currentPoint, currentPoint) + distance;
+                distan = SphericalUtil.computeDistanceBetween(currentPoint, currentPoint) + distan;
                 Log.d("sunita", "observeLocationUpdates: " + currentPoint + " " + currentPoint)
-                previouspoint = currentPoint
+                previpoint = currentPoint
 
                 Log.d(
                     "sunitya",
-                    "observeLocationUpdates: " + String.format("%.2f", distance / 1000) + "km"
+                    "observeLocationUpdates: " + String.format("%.2f", distan / 1000) + "km"
                 )
             }
-            return distance
+            return distan
         }
 
         fun storedata(it : Location,distanceresult : Double){
