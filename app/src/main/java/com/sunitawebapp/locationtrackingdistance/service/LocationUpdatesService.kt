@@ -60,7 +60,8 @@ class LocationUpdatesService : LifecycleService(){
 
             var distanceresult= AppController.distanceCalculate(currentpoint)
           //  AppController.storedata(it,distanceresult)
-            notifyText= getLocationText(it)!! + ", Distance :"+String.format("%.2f", distanceresult / 1000) + "km"
+           notifyText= getLocationText(it)!! + ", Distance :"+String.format("%.2f", distanceresult / 1000) + "km"
+
             startForeground(1, getNotification())
         })
 

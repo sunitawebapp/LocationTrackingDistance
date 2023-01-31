@@ -156,11 +156,6 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, ConnectionReceive
                 diatance.text=String.format("%.2f", distanceresult / 1000) + "km"
                 // time count down for 30 seconds,
                 // with 1 second as countDown interval
-                if (previouspoint==null){
-                    previouspoint=LatLng(it.latitude, it.longitude)
-                    countTimer()
-
-                }
 
 
                 // storedata(it,distanceresult)
@@ -174,7 +169,8 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, ConnectionReceive
                         //getCurrentloactionithContinueRun(it,prepoint)
                     }else{
                         // initialize snack bar
-                      Snackbar.make(findViewById(R.id.layout), "Not Connected to Internet", Snackbar.LENGTH_LONG).show()
+                        //Toast.makeText(this@MainActivity, "Not Connected to Internet", Toast.LENGTH_SHORT).show()
+                        Snackbar.make(findViewById(R.id.layout), "Not Connected to Internet", Snackbar.LENGTH_LONG).show()
                     }
 
                 }catch (e : Exception){
@@ -211,8 +207,6 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, ConnectionReceive
 
                 }
 
-
-
                 var distanceresult=AppController.distanceCalculate(currentpoint)
                 diatance.text=String.format("%.2f", distanceresult / 1000) + "km"
 
@@ -235,6 +229,7 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, ConnectionReceive
 
                     }else{
                         // initialize snack bar
+                      //  Toast.makeText(this@MainActivity, "Not Connected to Internet", Toast.LENGTH_SHORT).show()
                        Snackbar.make(findViewById(R.id.layout), "Not Connected to Internet", Snackbar.LENGTH_LONG).show()
 
                     }
@@ -461,37 +456,7 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, ConnectionReceive
 
           //  marker?.title = returnedAddress
         }
-     //   markertrack = mMap!!.addMarker(MarkerOptions().position(LatLng(it.latitude, it.longitude)).title(returnedAddress).icon(BitmapFromVector(getApplicationContext(), R.drawable.circle_icon)))
 
-      /*  handler.postDelayed(Runnable {
-            handler.postDelayed(runnable!!, delay.toLong())
-            markertrack = mMap!!.addMarker(MarkerOptions().position(LatLng(it.latitude, it.longitude)).title(returnedAddress).icon(BitmapFromVector(getApplicationContext(), R.drawable.circle_icon)))
-        }.also { runnable = it }, delay.toLong())
-*/
-     /*   var areaCircle=  mMap.addCircle(CircleOptions().radius(10.0)
-            .center(LatLng(it.latitude, it.longitude))
-
-            .strokeWidth(5f)
-            .strokeColor(Color.RED)
-            .fillColor(0x550000FF)
-        )*/
-  /*   var areaCircle=  mMap.addCircle(CircleOptions().radius(10.0))
-
-        val distance = FloatArray(2)
-
-        Location.distanceBetween(
-            marker!!.getPosition().latitude, marker!!.getPosition().longitude,
-            areaCircle.getCenter().latitude, areaCircle.getCenter().longitude, distance
-        )
-
-        if (distance[0] > areaCircle.getRadius()) {
-            isarea=false
-            Toast.makeText(this, "outside", Toast.LENGTH_LONG).show()
-
-        } else {
-            isarea=true
-            Toast.makeText(this, "Inside", Toast.LENGTH_LONG).show()
-        }*/
         mMap.isMyLocationEnabled = true
         val cameraPosition = CameraPosition.Builder().target(LatLng(it.latitude, it.longitude))
             .zoom(17f)
@@ -506,65 +471,7 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, ConnectionReceive
 
     }
 
-    fun getCurrentloactionithContinueRun(it: Location, prepoint: LatLng?) : Boolean{
 
-        var  title=stringToLatLong("${it.latitude.toString()},${it.longitude.toString()}")
-        //     var markertrack: Marker?=null
-        if(marker == null){
-            marker = mMap!!.addMarker(MarkerOptions().position(LatLng(it.latitude, it.longitude))
-                .title(returnedAddress)
-                .icon(BitmapFromVector(getApplicationContext(), R.drawable.directions_bike_icon))
-
-            )
-            marker?.showInfoWindow()
-
-        } else {
-            marker?.position = LatLng(it.latitude, it.longitude)
-            marker?.title=returnedAddress
-            marker?.showInfoWindow()
-
-        }
-
-
-           var areaCircle=  mMap.addCircle(CircleOptions().radius(2.0)
-               .center(prepoint?.let { it1 -> LatLng(prepoint.latitude, prepoint.longitude) })
-
-               .strokeWidth(5f)
-               .strokeColor(Color.RED)
-               .fillColor(0x550000FF)
-           )
-
-
-              val distance = FloatArray(2)
-
-              Location.distanceBetween(
-                  marker!!.getPosition().latitude, marker!!.getPosition().longitude,
-                  areaCircle.getCenter().latitude, areaCircle.getCenter().longitude, distance
-              )
-
-              if (distance[0] > areaCircle.getRadius()) {
-                  isarea=false
-                  var distanceresult=AppController.distanceCalculate(LatLng(it.latitude,it.longitude))
-                  diatanceWithContinueRun.text=String.format("%.2f", distanceresult / 1000) + "km"
-                  Toast.makeText(this, "outside", Toast.LENGTH_LONG).show()
-
-              } else {
-                  isarea=true
-                  Toast.makeText(this, "Inside", Toast.LENGTH_LONG).show()
-              }
-        mMap.isMyLocationEnabled = true
-        val cameraPosition = CameraPosition.Builder().target(LatLng(it.latitude, it.longitude))
-            .zoom(17f)
-            .bearing(0f)
-            .tilt(45f)
-            .build()
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(it.latitude, it.longitude), 15f))
-        mMap!!.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
-        mMap.animateCamera(CameraUpdateFactory.zoomTo(15f), 2000, null);
-
-        return isarea
-
-    }
     private fun BitmapFromVector(context: Context, vectorResId: Int): BitmapDescriptor? {
         // below line is use to generate a drawable.
         val vectorDrawable = ContextCompat.getDrawable(context, vectorResId)
@@ -696,7 +603,8 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, ConnectionReceive
 
     fun countTimer() {
 
-        object : CountDownTimer(300000, 1000) {
+       // object : CountDownTimer(180000, 1000) {
+            object : CountDownTimer(300000, 1000) {
 
             // Callback function, fired on regular interval
             override fun onTick(millisUntilFinished: Long) {
