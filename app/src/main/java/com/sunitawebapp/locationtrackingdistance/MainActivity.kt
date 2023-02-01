@@ -53,6 +53,7 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, ConnectionReceive
   lateinit  var latitude : TextView
   lateinit  var longitude : TextView
   lateinit  var diatance : TextView
+  lateinit var diatancetype2: TextView
   lateinit var diatanceWithContinueRun: TextView
 
 
@@ -87,6 +88,7 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, ConnectionReceive
         longitude=findViewById(R.id.longitude)
         btnStart=findViewById(R.id.btnStart)
         btnStop=findViewById(R.id.btnStop)
+        diatancetype2=findViewById(R.id.diatancetype2)
 
    /*     Before 5m prelc of redious same as currlc
 
@@ -166,6 +168,7 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, ConnectionReceive
 
 
                         getCurrentloaction(it)
+                        getDistanceNegligibleMeter(it)
                         //getCurrentloactionithContinueRun(it,prepoint)
                     }else{
                         // initialize snack bar
@@ -201,11 +204,7 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, ConnectionReceive
 
 
                 currentpoint= LatLng(it.latitude, it.longitude)
-              if (previouspoint==null){
-                  previouspoint=LatLng(it.latitude, it.longitude)
-                    countTimer()
 
-                }
 
                 var distanceresult=AppController.distanceCalculate(currentpoint)
                 diatance.text=String.format("%.2f", distanceresult / 1000) + "km"
@@ -216,17 +215,14 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, ConnectionReceive
 
                 try {
                     if (checkConnection()){
-                       /* if (previouspoint==null){
-                            prepoint=currentpoint
 
-                        }else{
-
-                           // previouspoint=prepoint
-                           // prepoint=currentpoint
-                        }*/
                             getCurrentloaction(it)
-                     //   getCurrentloactionithContinueRun(it,prepoint)
+                        getDistanceNegligibleMeter(it)
+                       /* if (previouspoint==null){
+                            previouspoint=LatLng(it.latitude, it.longitude)
+                            countTimer()
 
+                        }*/
                     }else{
                         // initialize snack bar
                       //  Toast.makeText(this@MainActivity, "Not Connected to Internet", Toast.LENGTH_SHORT).show()
@@ -470,7 +466,94 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, ConnectionReceive
         return isarea
 
     }
+fun getDistanceNegligibleMeter(it : Location){
+    if (previouspoint==null){
+        var areaCircle=  mMap.addCircle(CircleOptions().radius(10.0)
+            .center(LatLng(it.latitude, it.longitude))
+            .fillColor(Color.TRANSPARENT)  //default
+            .strokeColor(Color.TRANSPARENT)
 
+        )
+
+
+
+        val distance = FloatArray(2)
+
+        Location.distanceBetween(
+            marker!!.getPosition().latitude, marker!!.getPosition().longitude,
+            areaCircle.getCenter().latitude, areaCircle.getCenter().longitude, distance
+        )
+
+        if (distance[0] > areaCircle.getRadius()) {
+            isarea=false
+
+            var distanceresult=AppController.distanceCalculate(currentpoint)
+            diatancetype2.text=String.format("%.2f", distanceresult / 1000) + "km"
+            Toast.makeText(this@MainActivity, "outside", Toast.LENGTH_LONG).show()
+            previouspoint=LatLng(it!!.latitude,it!!.longitude)
+
+        } else {
+            isarea=true
+            Toast.makeText(this@MainActivity, "Inside", Toast.LENGTH_LONG).show()
+            previouspoint=LatLng(it!!.latitude,it!!.longitude)
+
+        }
+    }else{
+        var areaCircle=  mMap.addCircle(CircleOptions().radius(10.0)
+            .center(previouspoint?.let { it1 -> LatLng(previouspoint!!.latitude, previouspoint!!.longitude)})
+            .fillColor(Color.TRANSPARENT)  //default
+            .strokeColor(Color.TRANSPARENT)
+        )
+
+
+
+        val distance = FloatArray(2)
+
+        Location.distanceBetween(
+            marker!!.getPosition().latitude, marker!!.getPosition().longitude,
+            areaCircle.getCenter().latitude, areaCircle.getCenter().longitude, distance
+
+        )
+
+        if (distance[0] > areaCircle.getRadius()) {
+            isarea=false
+
+            var distanceresult=AppController.distanceCalculate(currentpoint)
+            diatancetype2.text=String.format("%.2f", distanceresult / 1000) + "km"
+            Toast.makeText(this@MainActivity, "outside", Toast.LENGTH_LONG).show()
+
+               previouspoint=LatLng(it!!.latitude,it!!.longitude)
+            /*    if (checkConnection()){
+
+                    countTimer()
+                }else{
+                    // initialize snack bar
+                    //  Toast.makeText(this@MainActivity, "Not Connected to Internet", Toast.LENGTH_SHORT).show()
+                    Snackbar.make(findViewById(R.id.layout), "Not Connected to Internet", Snackbar.LENGTH_LONG).show()
+
+                }*/
+
+
+
+        } else {
+            isarea=true
+            Toast.makeText(this@MainActivity, "Inside", Toast.LENGTH_LONG).show()
+            previouspoint=LatLng(it!!.latitude,it!!.longitude)
+            /*   if (checkConnection()){
+
+                   countTimer()
+               }else{
+                   // initialize snack bar
+                   //  Toast.makeText(this@MainActivity, "Not Connected to Internet", Toast.LENGTH_SHORT).show()
+                   Snackbar.make(findViewById(R.id.layout), "Not Connected to Internet", Snackbar.LENGTH_LONG).show()
+
+               }*/
+
+
+        }
+    }
+
+}
 
     private fun BitmapFromVector(context: Context, vectorResId: Int): BitmapDescriptor? {
         // below line is use to generate a drawable.
@@ -645,14 +728,32 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, ConnectionReceive
                     Toast.makeText(this@MainActivity, "outside", Toast.LENGTH_LONG).show()
 
                     previouspoint=LatLng(currentpoint!!.latitude,currentpoint!!.longitude)
-                    countTimer()
+                    if (checkConnection()){
+
+                        countTimer()
+                    }else{
+                        // initialize snack bar
+                        //  Toast.makeText(this@MainActivity, "Not Connected to Internet", Toast.LENGTH_SHORT).show()
+                        Snackbar.make(findViewById(R.id.layout), "Not Connected to Internet", Snackbar.LENGTH_LONG).show()
+
+                    }
+
 
 
                 } else {
                     isarea=true
                     Toast.makeText(this@MainActivity, "Inside", Toast.LENGTH_LONG).show()
                     previouspoint=LatLng(currentpoint!!.latitude,currentpoint!!.longitude)
-                    countTimer()
+                    if (checkConnection()){
+
+                        countTimer()
+                    }else{
+                        // initialize snack bar
+                        //  Toast.makeText(this@MainActivity, "Not Connected to Internet", Toast.LENGTH_SHORT).show()
+                        Snackbar.make(findViewById(R.id.layout), "Not Connected to Internet", Snackbar.LENGTH_LONG).show()
+
+                    }
+
 
                 }
                 //   textView.setText("done!")
