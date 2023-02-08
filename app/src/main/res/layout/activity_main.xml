@@ -155,6 +155,33 @@
             android:layout_marginRight="20dp"/>
 
     </LinearLayout>
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginStart="10dp">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="start|center_vertical"
+            android:text="Distance Update type 3:  "
+            android:textColor="@color/black"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+
+
+        <TextView
+            android:id="@+id/diatancetype3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical|start"
+            android:textSize="20sp"
+            android:text="0.00Km"
+            android:textStyle="bold"
+            android:layout_marginRight="20dp"/>
+
+    </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"

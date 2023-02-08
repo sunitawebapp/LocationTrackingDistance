@@ -54,6 +54,7 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, ConnectionReceive
   lateinit  var longitude : TextView
   lateinit  var diatance : TextView
   lateinit var diatancetype2: TextView
+  lateinit var diatancetype3 : TextView
   lateinit var diatanceWithContinueRun: TextView
 
 
@@ -89,6 +90,7 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, ConnectionReceive
         btnStart=findViewById(R.id.btnStart)
         btnStop=findViewById(R.id.btnStop)
         diatancetype2=findViewById(R.id.diatancetype2)
+        diatancetype3=findViewById(R.id.diatancetype3)
 
    /*     Before 5m prelc of redious same as currlc
 
@@ -154,8 +156,7 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, ConnectionReceive
 
                 currentpoint= LatLng(it.latitude, it.longitude)
 
-                var distanceresult=AppController.distanceCalculate(currentpoint)
-                diatance.text=String.format("%.2f", distanceresult / 1000) + "km"
+                diatance.text=String.format("%.2f", AppController.distanceCalculate(currentpoint) / 1000) + "km"
                 // time count down for 30 seconds,
                 // with 1 second as countDown interval
 
@@ -206,8 +207,8 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, ConnectionReceive
                 currentpoint= LatLng(it.latitude, it.longitude)
 
 
-                var distanceresult=AppController.distanceCalculate(currentpoint)
-                diatance.text=String.format("%.2f", distanceresult / 1000) + "km"
+
+                diatance.text=String.format("%.2f", AppController.distanceCalculate(currentpoint) / 1000) + "km"
 
 
 
@@ -433,7 +434,7 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, ConnectionReceive
         return PendingIntent.getBroadcast(this,0,intent,PendingIntent.FLAG_CANCEL_CURRENT)
     }
 
-    fun getCurrentloaction(it : Location) : Boolean{
+    fun getCurrentloaction(it : Location) {
 
         var  title=stringToLatLong("${it.latitude.toString()},${it.longitude.toString()}")
      //     var markertrack: Marker?=null
@@ -463,12 +464,10 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, ConnectionReceive
         mMap!!.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
         mMap.animateCamera(CameraUpdateFactory.zoomTo(15f), 2000, null);
 
-        return isarea
-
     }
 fun getDistanceNegligibleMeter(it : Location){
     if (previouspoint==null){
-        var areaCircle=  mMap.addCircle(CircleOptions().radius(10.0)
+        var areaCircle=  mMap.addCircle(CircleOptions().radius(150.0)
             .center(LatLng(it.latitude, it.longitude))
             .fillColor(Color.TRANSPARENT)  //default
             .strokeColor(Color.TRANSPARENT)
@@ -486,9 +485,10 @@ fun getDistanceNegligibleMeter(it : Location){
 
         if (distance[0] > areaCircle.getRadius()) {
             isarea=false
-
-            var distanceresult=AppController.distanceCalculate(currentpoint)
-            diatancetype2.text=String.format("%.2f", distanceresult / 1000) + "km"
+            diatancetype3.text=String.format("%.2f", AppController.distanceCalculateNegligibleMeter(LatLng(it!!.latitude,it!!.longitude)) / 1000) + "km"
+            diatancetype2.text=String.format("%.2f", AppController.distanceWithContinueRunCalculate( LatLng(previouspoint!!.latitude, previouspoint!!.longitude) ,LatLng(it!!.latitude,it!!.longitude)) / 1000) + "km"
+          //  var distancereslt=AppController.distanceCalculateNegligibleMeter(LatLng(it.latitude, it.longitude))
+        //    diatancetype2.text=String.format("%.2f", distancereslt / 1000) + "km"
             Toast.makeText(this@MainActivity, "outside", Toast.LENGTH_LONG).show()
             previouspoint=LatLng(it!!.latitude,it!!.longitude)
 
@@ -499,7 +499,7 @@ fun getDistanceNegligibleMeter(it : Location){
 
         }
     }else{
-        var areaCircle=  mMap.addCircle(CircleOptions().radius(10.0)
+        var areaCircle=  mMap.addCircle(CircleOptions().radius(150.0)
             .center(previouspoint?.let { it1 -> LatLng(previouspoint!!.latitude, previouspoint!!.longitude)})
             .fillColor(Color.TRANSPARENT)  //default
             .strokeColor(Color.TRANSPARENT)
@@ -517,9 +517,8 @@ fun getDistanceNegligibleMeter(it : Location){
 
         if (distance[0] > areaCircle.getRadius()) {
             isarea=false
-
-            var distanceresult=AppController.distanceCalculate(currentpoint)
-            diatancetype2.text=String.format("%.2f", distanceresult / 1000) + "km"
+            diatancetype2.text=String.format("%.2f", AppController.distanceWithContinueRunCalculate( LatLng(previouspoint!!.latitude, previouspoint!!.longitude) ,LatLng(it!!.latitude,it!!.longitude)) / 1000) + "km"
+            diatancetype3.text=String.format("%.2f", AppController.distanceCalculateNegligibleMeter(LatLng(it!!.latitude,it!!.longitude)) / 1000) + "km"
             Toast.makeText(this@MainActivity, "outside", Toast.LENGTH_LONG).show()
 
                previouspoint=LatLng(it!!.latitude,it!!.longitude)

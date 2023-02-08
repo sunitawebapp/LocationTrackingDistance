@@ -1,5 +1,6 @@
 package com.sunitawebapp.locationtrackingdistance.service
 
+import android.annotation.SuppressLint
 import android.app.*
 import android.content.Context
 import android.content.Intent
@@ -15,8 +16,16 @@ import com.sunitawebapp.locationtrackingdistance.AppController
 import com.sunitawebapp.locationtrackingdistance.R
 import com.sunitawebapp.locationtrackingdistance.livedata.LocationLiveData
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.material.snackbar.Snackbar
+import com.google.maps.android.SphericalUtil
+import com.sunitawebapp.locationtrackingdistance.AppController.Companion.checkConnection
+import com.sunitawebapp.locationtrackingdistance.MainActivity
 
 var currentpoint : LatLng?=null
+var existLongitude: String? = null
+var existLatitude: String? = null
+
+var previouspoint: LatLng? = null
 class LocationUpdatesService : LifecycleService(){
     val CHANNEL_ID = "ForegroundServiceChannel"
     var notifyText=""
@@ -42,6 +51,7 @@ class LocationUpdatesService : LifecycleService(){
         return super.onStartCommand(intent, flags, startId)
     }
 
+    @SuppressLint("SuspiciousIndentation")
     override fun onStart(intent: Intent?, startId: Int) {
         super.onStart(intent, startId)
 
@@ -59,8 +69,59 @@ class LocationUpdatesService : LifecycleService(){
 
 
             var distanceresult= AppController.distanceCalculate(currentpoint)
-          //  AppController.storedata(it,distanceresult)
-           notifyText= getLocationText(it)!! + ", Distance :"+String.format("%.2f", distanceresult / 1000) + "km"
+
+
+
+       /*     if (existLatitude != null && existLongitude != null) {
+                val selected_location = Location("locationA")
+                selected_location.latitude = existLatitude!!.toDouble()
+                selected_location.longitude = existLongitude!!.toDouble()
+                val near_locations = Location("locationB")
+                near_locations.latitude = it!!.latitude
+                near_locations.longitude = it!!.longitude
+                val distance = selected_location.distanceTo(near_locations)
+                Toast.makeText(this, distance.toString(), Toast.LENGTH_SHORT).show()
+                if (distance > 70.0) {
+                    Toast.makeText(this, "You are outside $distance", Toast.LENGTH_SHORT).show()
+                    notifyText= getLocationText(it)!! + ", Distance :"+String.format("%.2f", distance / 1000)  + "km"
+                }else{
+                    existLatitude=it.latitude.toString()
+                    existLongitude= it.longitude.toString()
+                }
+            }else{
+                existLatitude=it.latitude.toString()
+                existLongitude= it.longitude.toString()
+                notifyText= getLocationText(it)!! + ", Distance : 0.00km"
+            }*/
+
+            if (checkConnection(this)){
+                if (previouspoint==null){
+                    previouspoint=LatLng(it!!.latitude,it!!.longitude)
+                    notifyText= getLocationText(it)!! + ", Distance : 0.00km"
+                }else{
+                    var distance= AppController.distanceCalculatewithForgroundservice( LatLng(previouspoint!!.latitude, previouspoint!!.longitude) ,LatLng(it!!.latitude,it!!.longitude))
+                    Toast.makeText(this, distance.toString(), Toast.LENGTH_SHORT).show()
+                    if (String.format("%.2f",  SphericalUtil.computeDistanceBetween(LatLng(previouspoint!!.latitude, previouspoint!!.longitude) ,LatLng(it!!.latitude,it!!.longitude)) / 1000).toDouble()  > 0.15.toString().toDouble()) {
+                        Toast.makeText(this, "You are outside $distance", Toast.LENGTH_SHORT).show()
+                        notifyText= getLocationText(it)!! + ", Distance :"+String.format("%.2f", distance / 1000)  + "km"
+                        previouspoint=LatLng(it!!.latitude,it!!.longitude)
+                    }else{
+                        previouspoint=LatLng(it!!.latitude,it!!.longitude)
+                    }
+                }
+            }else{
+                // initialize snack bar
+                Toast.makeText(this, "Not Connected to Internet", Toast.LENGTH_SHORT).show()
+
+            }
+
+
+
+
+            //  AppController.storedata(it,distanceresult)
+        //  notifyText= getLocationText(it)!! + ", Distance :"+String.format("%.2f", distanceresult / 1000) + "km"
+
+           // notifyText= getLocationText(it)!! + ", Distance :"+String.format("%.2f", distanceresult / 1000) + "km"+ ", new Distance :"+String.format("%.2f", distanceresult / 1000) + "km"
 
             startForeground(1, getNotification())
         })
