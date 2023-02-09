@@ -4,14 +4,18 @@ import android.annotation.SuppressLint
 import android.app.*
 import android.content.Context
 import android.content.Intent
+import android.graphics.Color
 import android.location.Location
 import android.os.Build
+import android.os.CountDownTimer
+import android.util.Log
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.lifecycle.LifecycleService
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
+import com.google.android.gms.maps.model.CircleOptions
 import com.sunitawebapp.locationtrackingdistance.AppController
 import com.sunitawebapp.locationtrackingdistance.R
 import com.sunitawebapp.locationtrackingdistance.livedata.LocationLiveData
@@ -19,6 +23,7 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.material.snackbar.Snackbar
 import com.google.maps.android.SphericalUtil
 import com.sunitawebapp.locationtrackingdistance.AppController.Companion.checkConnection
+import com.sunitawebapp.locationtrackingdistance.AppController.Companion.stringToLatLong
 import com.sunitawebapp.locationtrackingdistance.MainActivity
 
 var currentpoint : LatLng?=null
@@ -97,13 +102,14 @@ class LocationUpdatesService : LifecycleService(){
             if (checkConnection(this)){
                 if (previouspoint==null){
                     previouspoint=LatLng(it!!.latitude,it!!.longitude)
-                    notifyText= getLocationText(it)!! + ", Distance : 0.00km"
+                    notifyText= stringToLatLong("${it.latitude.toString()},${it.longitude.toString()}",this) + ", Distance : 0.00km"
                 }else{
                     var distance= AppController.distanceCalculatewithForgroundservice( LatLng(previouspoint!!.latitude, previouspoint!!.longitude) ,LatLng(it!!.latitude,it!!.longitude))
                     Toast.makeText(this, distance.toString(), Toast.LENGTH_SHORT).show()
                     if (String.format("%.2f",  SphericalUtil.computeDistanceBetween(LatLng(previouspoint!!.latitude, previouspoint!!.longitude) ,LatLng(it!!.latitude,it!!.longitude)) / 1000).toDouble()  > 0.15.toString().toDouble()) {
                         Toast.makeText(this, "You are outside $distance", Toast.LENGTH_SHORT).show()
-                        notifyText= getLocationText(it)!! + ", Distance :"+String.format("%.2f", distance / 1000)  + "km"
+
+                        notifyText=  stringToLatLong("${it.latitude.toString()},${it.longitude.toString()}",this)+ ", Distance :"+String.format("%.2f", distance / 1000)  + "km"
                         previouspoint=LatLng(it!!.latitude,it!!.longitude)
                     }else{
                         previouspoint=LatLng(it!!.latitude,it!!.longitude)
@@ -135,6 +141,7 @@ class LocationUpdatesService : LifecycleService(){
             .setSmallIcon(R.drawable.ic_launcher_background)
             .setContentTitle("location Tracking")
             .setContentText("$notifyText")
+            .setStyle(NotificationCompat.BigTextStyle().bigText(notifyText).setSummaryText("count time"))
             .setNotificationSilent()
 
         // Add as notification

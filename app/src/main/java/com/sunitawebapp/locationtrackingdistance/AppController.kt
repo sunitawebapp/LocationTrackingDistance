@@ -4,14 +4,18 @@ import android.app.Application
 import android.content.Context
 import android.content.IntentFilter
 import android.graphics.Color
+import android.location.Address
+import android.location.Geocoder
 import android.location.Location
 import android.net.ConnectivityManager
+import android.os.CountDownTimer
 import android.util.Log
 import android.widget.Toast
 import androidx.core.content.ContextCompat.getSystemService
 import com.google.android.gms.maps.model.LatLng
 import com.google.firebase.database.FirebaseDatabase
 import com.google.maps.android.SphericalUtil
+import java.util.*
 
 
 class AppController : Application(){
@@ -176,6 +180,48 @@ class AppController : Application(){
             return false
         }
 
+
+
+        fun stringToLatLong(latLongStr: String,context: Context): String {
+            var returnedAddress=""
+            val geocoder = Geocoder(context, Locale.getDefault())
+
+
+            val latlong = latLongStr.split(",").toTypedArray()
+            val latitude = latlong[0].toDouble()
+            val longitude = latlong[1].toDouble()
+
+            val addresses: List<Address> = geocoder.getFromLocation(latitude, longitude, 1)
+            val strReturnedAddress = StringBuilder("")
+            var  returnedAdd = addresses[0]
+
+            for (i in 0..returnedAdd.getMaxAddressLineIndex()) {
+                strReturnedAddress.append(returnedAdd.getAddressLine(i)).append("\n")
+            }
+            returnedAddress = strReturnedAddress.toString()
+            return returnedAddress
+        }
+
+          fun countTimer() {
+              object : CountDownTimer(300000, 1000) {
+
+                  // Callback function, fired on regular interval
+                  override fun onTick(millisUntilFinished: Long) {
+                      //    textView.setText("seconds remaining: " + millisUntilFinished / 1000)
+                      Log.d("timeing", "onTick: seconds remaining"+millisUntilFinished / 1000)
+
+
+                  }
+
+                  // Callback function, fired
+                  // when the time is up
+                  override fun onFinish() {
+
+
+                      //   textView.setText("done!")
+                  }
+              }.start()
+        }
     }
 
 
