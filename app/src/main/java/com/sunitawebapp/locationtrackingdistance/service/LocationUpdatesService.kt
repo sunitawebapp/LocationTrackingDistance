@@ -193,8 +193,9 @@ class LocationUpdatesService : LifecycleService(){
                             "${it.latitude.toString()},${it.longitude.toString()}",
                             context
                         ) + ", Distance : 0.00km"
+                        startForeground(1, getNotification())
                     }
-                    startForeground(1, getNotification())
+
                 }
 
             }
@@ -218,6 +219,7 @@ class LocationUpdatesService : LifecycleService(){
                             loc.latitude= previouspoint!!.latitude
                             loc.longitude= previouspoint!!.longitude
                             countTimer(context,loc)
+                            startForeground(1, getNotification())
                         }else{
                             previouspoint=LatLng(it!!.latitude,it!!.longitude)
                             var loc=Location("")
@@ -226,7 +228,7 @@ class LocationUpdatesService : LifecycleService(){
                             countTimer(context,loc)
                         }
                   //  }
-                    startForeground(1, getNotification())
+
                 }else{
                     // initialize snack bar
                     Toast.makeText(context, "Not Connected to Internet", Toast.LENGTH_SHORT).show()
