@@ -186,7 +186,16 @@ class LocationUpdatesService : LifecycleService(){
             override fun onTick(millisUntilFinished: Long) {
                 //    textView.setText("seconds remaining: " + millisUntilFinished / 1000)
                 Log.d("timeing", "onTick: seconds remaining"+millisUntilFinished / 1000)
-
+                if (checkConnection(context)) {
+                    if (previouspoint == null) {
+                        previouspoint = LatLng(it!!.latitude, it!!.longitude)
+                        notifyText = stringToLatLong(
+                            "${it.latitude.toString()},${it.longitude.toString()}",
+                            context
+                        ) + ", Distance : 0.00km"
+                    }
+                    startForeground(1, getNotification())
+                }
 
             }
 
@@ -194,10 +203,10 @@ class LocationUpdatesService : LifecycleService(){
             // when the time is up
             override fun onFinish() {
                 if (checkConnection(context)){
-                    if (previouspoint==null){
+                /*    if (previouspoint==null){
                         previouspoint=LatLng(it!!.latitude,it!!.longitude)
                         notifyText= stringToLatLong("${it.latitude.toString()},${it.longitude.toString()}",context) + ", Distance : 0.00km"
-                    }else{
+                    }else{*/
                         var distance= AppController.distanceCalculatewithForgroundservice( LatLng(previouspoint!!.latitude, previouspoint!!.longitude) ,LatLng(it!!.latitude,it!!.longitude))
                         Toast.makeText(context, distance.toString(), Toast.LENGTH_SHORT).show()
                         if (String.format("%.2f",  SphericalUtil.computeDistanceBetween(LatLng(previouspoint!!.latitude, previouspoint!!.longitude) ,LatLng(it!!.latitude,it!!.longitude)) / 1000).toDouble()  > 0.15.toString().toDouble()) {
@@ -205,10 +214,18 @@ class LocationUpdatesService : LifecycleService(){
 
                             notifyText=  stringToLatLong("${it.latitude.toString()},${it.longitude.toString()}",context)+ ", Distance :"+String.format("%.2f", distance / 1000)  + "km"
                             previouspoint=LatLng(it!!.latitude,it!!.longitude)
+                            var loc=Location("")
+                            loc.latitude= previouspoint!!.latitude
+                            loc.longitude= previouspoint!!.longitude
+                            countTimer(context,loc)
                         }else{
                             previouspoint=LatLng(it!!.latitude,it!!.longitude)
+                            var loc=Location("")
+                            loc.latitude= previouspoint!!.latitude
+                            loc.longitude= previouspoint!!.longitude
+                            countTimer(context,loc)
                         }
-                    }
+                  //  }
                     startForeground(1, getNotification())
                 }else{
                     // initialize snack bar
