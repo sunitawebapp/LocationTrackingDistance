@@ -98,8 +98,8 @@ class LocationUpdatesService : LifecycleService(){
                 existLongitude= it.longitude.toString()
                 notifyText= getLocationText(it)!! + ", Distance : 0.00km"
             }*/
-
-            if (checkConnection(this)){
+           countTimer(this,it)
+           /* if (checkConnection(this)){
                 if (previouspoint==null){
                     previouspoint=LatLng(it!!.latitude,it!!.longitude)
                     notifyText= stringToLatLong("${it.latitude.toString()},${it.longitude.toString()}",this) + ", Distance : 0.00km"
@@ -115,11 +115,12 @@ class LocationUpdatesService : LifecycleService(){
                         previouspoint=LatLng(it!!.latitude,it!!.longitude)
                     }
                 }
+                startForeground(1, getNotification())
             }else{
                 // initialize snack bar
                 Toast.makeText(this, "Not Connected to Internet", Toast.LENGTH_SHORT).show()
 
-            }
+            }*/
 
 
 
@@ -129,7 +130,7 @@ class LocationUpdatesService : LifecycleService(){
 
            // notifyText= getLocationText(it)!! + ", Distance :"+String.format("%.2f", distanceresult / 1000) + "km"+ ", new Distance :"+String.format("%.2f", distanceresult / 1000) + "km"
 
-            startForeground(1, getNotification())
+           // startForeground(1, getNotification())
         })
 
     }
@@ -178,6 +179,46 @@ class LocationUpdatesService : LifecycleService(){
 
     }
 
-    
+    fun countTimer(context: Context,it:Location) {
+        object : CountDownTimer(300000, 1000) {
+
+            // Callback function, fired on regular interval
+            override fun onTick(millisUntilFinished: Long) {
+                //    textView.setText("seconds remaining: " + millisUntilFinished / 1000)
+                Log.d("timeing", "onTick: seconds remaining"+millisUntilFinished / 1000)
+
+
+            }
+
+            // Callback function, fired
+            // when the time is up
+            override fun onFinish() {
+                if (checkConnection(context)){
+                    if (previouspoint==null){
+                        previouspoint=LatLng(it!!.latitude,it!!.longitude)
+                        notifyText= stringToLatLong("${it.latitude.toString()},${it.longitude.toString()}",context) + ", Distance : 0.00km"
+                    }else{
+                        var distance= AppController.distanceCalculatewithForgroundservice( LatLng(previouspoint!!.latitude, previouspoint!!.longitude) ,LatLng(it!!.latitude,it!!.longitude))
+                        Toast.makeText(context, distance.toString(), Toast.LENGTH_SHORT).show()
+                        if (String.format("%.2f",  SphericalUtil.computeDistanceBetween(LatLng(previouspoint!!.latitude, previouspoint!!.longitude) ,LatLng(it!!.latitude,it!!.longitude)) / 1000).toDouble()  > 0.15.toString().toDouble()) {
+                            Toast.makeText(context, "You are outside $distance", Toast.LENGTH_SHORT).show()
+
+                            notifyText=  stringToLatLong("${it.latitude.toString()},${it.longitude.toString()}",context)+ ", Distance :"+String.format("%.2f", distance / 1000)  + "km"
+                            previouspoint=LatLng(it!!.latitude,it!!.longitude)
+                        }else{
+                            previouspoint=LatLng(it!!.latitude,it!!.longitude)
+                        }
+                    }
+                    startForeground(1, getNotification())
+                }else{
+                    // initialize snack bar
+                    Toast.makeText(context, "Not Connected to Internet", Toast.LENGTH_SHORT).show()
+
+                }
+
+                //   textView.setText("done!")
+            }
+        }.start()
+    }
 
 }

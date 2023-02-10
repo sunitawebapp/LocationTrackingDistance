@@ -13,8 +13,11 @@ import com.google.android.gms.location.LocationServices
  */
 /*const val INTERVAL = 2000L
 const val FASTEST_INTERVAL = 1000L*/
-const val INTERVAL = 180000L
-const val FASTEST_INTERVAL = 180000L
+
+const val INTERVAL = 30000L
+const val FASTEST_INTERVAL = 15000L
+/*const val INTERVAL = 180000L
+const val FASTEST_INTERVAL = 180000L*/
 
 /**
  * Created by Waheed on 03,December,2019
