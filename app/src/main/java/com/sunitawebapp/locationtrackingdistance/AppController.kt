@@ -203,7 +203,7 @@ class AppController : Application(){
         }
 
           fun countTimer() {
-              object : CountDownTimer(300000, 1000) {
+              object : CountDownTimer(30000, 1000) {
 
                   // Callback function, fired on regular interval
                   override fun onTick(millisUntilFinished: Long) {
@@ -216,7 +216,7 @@ class AppController : Application(){
                   // Callback function, fired
                   // when the time is up
                   override fun onFinish() {
-
+                      countTimer()
 
                       //   textView.setText("done!")
                   }

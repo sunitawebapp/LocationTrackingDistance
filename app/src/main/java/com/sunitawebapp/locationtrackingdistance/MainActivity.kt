@@ -40,7 +40,12 @@ import com.google.android.gms.maps.model.*
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.FirebaseApp
 import com.sunitawebapp.locationtrackingdistance.AppController.Companion.applunchnew
+import com.sunitawebapp.locationtrackingdistance.AppController.Companion.caldistance
+import com.sunitawebapp.locationtrackingdistance.AppController.Companion.distan
 import com.sunitawebapp.locationtrackingdistance.AppController.Companion.distancestore
+import com.sunitawebapp.locationtrackingdistance.AppController.Companion.forgroundServicedistan
+import com.sunitawebapp.locationtrackingdistance.AppController.Companion.previpoint
+import com.sunitawebapp.locationtrackingdistance.AppController.Companion.prevpoint
 import com.sunitawebapp.locationtrackingdistance.livedata.FASTEST_INTERVAL
 import com.sunitawebapp.locationtrackingdistance.livedata.INTERVAL
 import com.sunitawebapp.locationtrackingdistance.livedata.LocationViewModel
@@ -194,6 +199,7 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, ConnectionReceive
             }
         }
         btnStart.setOnClickListener {
+
             applunchnew=true
 
 
@@ -257,7 +263,16 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, ConnectionReceive
         btnStop.setOnClickListener {
 
             stopService(Intent(this, LocationUpdatesService::class.java))
+              distancestore=0.0
+             applunchnew=false
+             distance=0.0
+             previouspoint = null
 
+             distan=0.0
+             forgroundServicedistan=0.0
+             previpoint = null
+             prevpoint= null
+             caldistance=0.0
         }
 
     }
@@ -760,4 +775,5 @@ fun getDistanceNegligibleMeter(it : Location){
         }.start()
 
     }
+
 }

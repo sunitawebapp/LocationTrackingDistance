@@ -23,6 +23,7 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.material.snackbar.Snackbar
 import com.google.maps.android.SphericalUtil
 import com.sunitawebapp.locationtrackingdistance.AppController.Companion.checkConnection
+
 import com.sunitawebapp.locationtrackingdistance.AppController.Companion.stringToLatLong
 import com.sunitawebapp.locationtrackingdistance.MainActivity
 
@@ -59,7 +60,7 @@ class LocationUpdatesService : LifecycleService(){
     @SuppressLint("SuspiciousIndentation")
     override fun onStart(intent: Intent?, startId: Int) {
         super.onStart(intent, startId)
-
+     //  AppController.countTimer()
 
         var locationData =
             LocationLiveData(this)
@@ -98,7 +99,12 @@ class LocationUpdatesService : LifecycleService(){
                 existLongitude= it.longitude.toString()
                 notifyText= getLocationText(it)!! + ", Distance : 0.00km"
             }*/
-           countTimer(this,it)
+            if (previouspoint == null) {
+                countTimer(this,it)
+              //  countTimerr()
+            }
+
+
            /* if (checkConnection(this)){
                 if (previouspoint==null){
                     previouspoint=LatLng(it!!.latitude,it!!.longitude)
@@ -126,10 +132,11 @@ class LocationUpdatesService : LifecycleService(){
 
 
             //  AppController.storedata(it,distanceresult)
-        //  notifyText= getLocationText(it)!! + ", Distance :"+String.format("%.2f", distanceresult / 1000) + "km"
+         // notifyText= getLocationText(it)!! + ", Distance :"+String.format("%.2f", distanceresult / 1000) + "km"
 
            // notifyText= getLocationText(it)!! + ", Distance :"+String.format("%.2f", distanceresult / 1000) + "km"+ ", new Distance :"+String.format("%.2f", distanceresult / 1000) + "km"
 
+           // startForeground(1, getNotification())
            // startForeground(1, getNotification())
         })
 
@@ -208,27 +215,30 @@ class LocationUpdatesService : LifecycleService(){
                         previouspoint=LatLng(it!!.latitude,it!!.longitude)
                         notifyText= stringToLatLong("${it.latitude.toString()},${it.longitude.toString()}",context) + ", Distance : 0.00km"
                     }else{*/
-                        var distance= AppController.distanceCalculatewithForgroundservice( LatLng(previouspoint!!.latitude, previouspoint!!.longitude) ,LatLng(it!!.latitude,it!!.longitude))
+                        var distance= AppController.distanceCalculatewithForgroundservice( LatLng(previouspoint!!.latitude, previouspoint!!.longitude) ,currentpoint)
                         Toast.makeText(context, distance.toString(), Toast.LENGTH_SHORT).show()
-                        if (String.format("%.2f",  SphericalUtil.computeDistanceBetween(LatLng(previouspoint!!.latitude, previouspoint!!.longitude) ,LatLng(it!!.latitude,it!!.longitude)) / 1000).toDouble()  > 0.15.toString().toDouble()) {
+                        if (String.format("%.2f",  SphericalUtil.computeDistanceBetween(LatLng(previouspoint!!.latitude, previouspoint!!.longitude) ,currentpoint) / 1000).toDouble()  > 0.15.toString().toDouble()) {
                             Toast.makeText(context, "You are outside $distance", Toast.LENGTH_SHORT).show()
 
-                            notifyText=  stringToLatLong("${it.latitude.toString()},${it.longitude.toString()}",context)+ ", Distance :"+String.format("%.2f", distance / 1000)  + "km"
-                            previouspoint=LatLng(it!!.latitude,it!!.longitude)
+                            notifyText=  stringToLatLong("${currentpoint?.latitude.toString()},${currentpoint?.longitude.toString()}",context)+ ", Distance :"+String.format("%.2f", distance / 1000)  + "km"
+                            previouspoint=currentpoint
                             var loc=Location("")
                             loc.latitude= previouspoint!!.latitude
                             loc.longitude= previouspoint!!.longitude
+
+
                             countTimer(context,loc)
-                            startForeground(1, getNotification())
                         }else{
-                            previouspoint=LatLng(it!!.latitude,it!!.longitude)
+                            previouspoint=currentpoint
                             var loc=Location("")
                             loc.latitude= previouspoint!!.latitude
                             loc.longitude= previouspoint!!.longitude
+
+
                             countTimer(context,loc)
                         }
                   //  }
-
+                    startForeground(1, getNotification())
                 }else{
                     // initialize snack bar
                     Toast.makeText(context, "Not Connected to Internet", Toast.LENGTH_SHORT).show()
@@ -239,5 +249,8 @@ class LocationUpdatesService : LifecycleService(){
             }
         }.start()
     }
+
+
+
 
 }
